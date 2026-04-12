@@ -1,5 +1,7 @@
 # Claude Addons 安装脚本
 
+[English Version](README.md)
+
 ## 脚本简介
 
 这是一个用于管理 Claude Code 相关项目的安装和更新脚本，能够自动处理 Git 仓库的克隆/更新、工具安装、技能配置等操作。

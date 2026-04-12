@@ -1,5 +1,7 @@
 # Claude Addons Installation Script
 
+[中文版本 (Chinese Version)](README.zh-CN.md)
+
 ## Script Introduction
 
 This is a script for managing the installation and update of Claude Code related projects, capable of automatically handling Git repository cloning/updating, tool installation, skill configuration, and other operations.
