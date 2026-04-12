@@ -1,27 +1,101 @@
 #!/bin/bash
 
-# 全局变量：是否使用加速链接
-USE_PROXY=false
-# 全局变量：是否保留 git 仓库
+# Default value for KEEP_REPOS
 KEEP_REPOS=false
 
-# 解析命令行参数
-while [[ $# -gt 0 ]]; do
-    case $1 in
+# Process command line arguments
+while [ $# -gt 0 ]; do
+    case "$1" in
         --keep-repos)
             KEEP_REPOS=true
             shift
             ;;
         *)
+            echo "Unknown argument: $1"
             shift
             ;;
     esac
 done
 
+# Global variable: whether to use proxy link
+USE_PROXY=false
+# Tool installation function (with version check)
+install_tool() {
+    local tool_name="$1"
+    local check_command="$2"
+    local install_command="$3"
+    local version_command="$4"
+    local version_pattern="$5"
+    
+    echo "Installing $tool_name tool..."
+    if eval "$check_command" &> /dev/null; then
+        echo "$tool_name is already installed, checking version..."
+        if [ -n "$version_command" ]; then
+            current_version=$(eval "$version_command" 2>&1)
+            if [ -n "$version_pattern" ]; then
+                current_version=$(echo "$current_version" | grep -E "$version_pattern" | head -1)
+            else
+                current_version=$(echo "$current_version" | head -1)
+            fi
+        else
+            current_version="Installed"
+        fi
+        
+        if [ -n "$current_version" ]; then
+            echo "Current $tool_name version: $current_version"
+            echo "✓ $tool_name tool is already installed"
+        else
+            echo "$tool_name version check failed, reinstalling..."
+            eval "$install_command"
+            echo "✓ $tool_name tool installation completed"
+        fi
+    else
+        echo "$tool_name is not installed, starting installation..."
+        eval "$install_command"
+        echo "✓ $tool_name tool installation completed"
+    fi
+    echo ""
+}
+
+# Git repository processing function
+process_repo() {
+    local repo_name="$1"
+    local repo_url_var="$2"
+    
+    echo "Processing $repo_name project..."
+    if [ "$KEEP_REPOS" = "true" ] && [ -d "$repo_name/.git" ]; then
+        git_operation "pull" "" "$repo_name"
+    else
+        echo "$repo_name directory does not exist or is not a git repository, starting clone..."
+        rm -rf "$repo_name"
+        local repo_url=$(get_repo_url "${!repo_url_var}")
+        git_operation "clone" "$repo_url" "$repo_name"
+    fi
+    echo ""
+}
+
+# Skill installation function
+install_skill() {
+    local skill_name="$1"
+    local source_dir="$2"
+    local target_dir="$3"
+    
+    echo "Installing $skill_name..."
+    mkdir -p "$target_dir"
+    if [ -d "$source_dir" ]; then
+        rm -rf "$target_dir"
+        cp -r "$source_dir" "$target_dir"
+        echo "✓ $skill_name installation completed"
+    else
+        echo "✗ $skill_name source directory does not exist"
+    fi
+    echo ""
+}
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-# 原始仓库链接
+# Original repository links
 AGENTS_REPO="https://github.com/msitarzewski/agency-agents.git"
 PLUGINS_REPO="https://github.com/anthropics/claude-plugins-official.git"
 GSTACK_REPO="https://github.com/garrytan/gstack.git"
@@ -32,13 +106,13 @@ CODE_REVIEW_GRAPH_REPO="https://github.com/tirth8205/code-review-graph.git"
 GITNEXUS_REPO="https://github.com/abhigyanpatwari/GitNexus.git"
 RTK_REPO="https://github.com/rtk-ai/rtk.git"
 
-# GitHub加速工具
+# GitHub acceleration tool
 GITHUB_PROXY="https://gh-proxy.org"
 
-# 全局变量：是否使用加速链接
+# Global variable: whether to use proxy link
 USE_PROXY=false
 
-# 网络测试函数
+# Network test function
 check_network() {
     local url="$1"
     local timeout=3
@@ -50,61 +124,61 @@ check_network() {
     fi
 }
 
-# 获取仓库链接（根据网络状况）
+# Get repository link (based on network status)
 get_repo_url() {
     local repo_url="$1"
     local proxy_url="$GITHUB_PROXY/$repo_url"
     
-    # 检查原始链接是否已经是加速链接
+    # Check if the original link is already an accelerated link
     if [[ "$repo_url" == *"$GITHUB_PROXY"* ]]; then
-        echo "使用加速链接: $repo_url" >&2
-        # 设置全局变量，后续仓库默认使用加速链接
+        echo "Using accelerated link: $repo_url" >&2
+        # Set global variable, subsequent repositories use accelerated links by default
         USE_PROXY=true
         echo "$repo_url"
         return
     fi
     
-    # 如果已经确定使用加速链接，直接返回
+    # If already determined to use accelerated link, return directly
     if [ "$USE_PROXY" = "true" ]; then
-        echo "使用加速链接: $proxy_url" >&2
+        echo "Using accelerated link: $proxy_url" >&2
         echo "$proxy_url"
         return
     fi
     
-    # 测试原始链接
+    # Test original link
     if check_network "$repo_url"; then
-        echo "使用原始链接: $repo_url" >&2
+        echo "Using original link: $repo_url" >&2
         echo "$repo_url"
     else
-        echo "使用加速链接: $proxy_url" >&2
-        # 设置全局变量，后续仓库默认使用加速链接
+        echo "Using accelerated link: $proxy_url" >&2
+        # Set global variable, subsequent repositories use accelerated links by default
         USE_PROXY=true
         echo "$proxy_url"
     fi
 }
 
-# Git操作函数（带超时和重试）
+# Git operation function (with timeout and retry)
 git_operation() {
     local operation="$1"
     local repo_url="$2"
     local target_dir="$3"
-    local max_retries=1  # 减少重试次数以节省时间
+    local max_retries=1  # Reduce retry times to save time
     local retry=0
     
     while [ $retry -lt $max_retries ]; do
-        echo "尝试 $operation ($((retry+1))/$max_retries)..."
+        echo "Attempting $operation ($((retry+1))/$max_retries)..."
         
         if [ "$operation" = "clone" ]; then
             if git clone --depth 1 "$repo_url" "$target_dir" 2>&1; then
-                echo "✓ $operation 成功"
+                echo "✓ $operation successful"
                 return 0
             else
-                # 尝试使用加速链接
-                echo "尝试使用加速链接..."
+                # Try using accelerated link
+                echo "Trying accelerated link..."
                 local proxy_url="$GITHUB_PROXY/$repo_url"
                 if git clone --depth 1 "$proxy_url" "$target_dir" 2>&1; then
-                    echo "✓ $operation 成功（使用加速链接）"
-                    # 设置全局变量，后续仓库默认使用加速链接
+                    echo "✓ $operation successful (using accelerated link)"
+                    # Set global variable, subsequent repositories use accelerated links by default
                     USE_PROXY=true
                     return 0
                 fi
@@ -112,60 +186,60 @@ git_operation() {
         elif [ "$operation" = "pull" ]; then
             cd "$target_dir"
             
-            # 获取原始 remote
+            # Get original remote
             local original_remote=$(git remote get-url origin)
             
-            # 检查原始 remote 是否已经是加速链接
+            # Check if original remote is already an accelerated link
             if [[ "$original_remote" == *"$GITHUB_PROXY"* ]]; then
                 local is_proxy_remote=true
             else
                 local is_proxy_remote=false
             fi
             
-            # 如果全局设置了使用加速链接，直接切换
+            # If global setting to use accelerated link, switch directly
             if [ "$USE_PROXY" = "true" ] && [ "$is_proxy_remote" = "false" ]; then
-                echo "使用加速链接进行 pull..."
+                echo "Using accelerated link for pull..."
                 local proxy_remote="$GITHUB_PROXY/$original_remote"
                 git remote set-url origin "$proxy_remote"
                 
                 if git pull 2>&1; then
-                    # 恢复原始 remote
+                    # Restore original remote
                     git remote set-url origin "$original_remote"
                     cd "$SCRIPT_DIR"
-                    echo "✓ $operation 成功（使用加速链接）"
+                    echo "✓ $operation successful (using accelerated link)"
                     return 0
                 fi
                 
-                # 恢复原始 remote
+                # Restore original remote
                 git remote set-url origin "$original_remote"
                 cd "$SCRIPT_DIR"
                 return 1
             fi
             
-            # 尝试原始 pull
+            # Try original pull
             if git pull 2>&1; then
                 cd "$SCRIPT_DIR"
-                echo "✓ $operation 成功"
+                echo "✓ $operation successful"
                 return 0
             fi
             
-            # 如果失败，尝试使用加速链接（如果还没有使用）
+            # If failed, try using accelerated link (if not already using)
             if [ "$is_proxy_remote" = "false" ]; then
-                echo "尝试使用加速链接..."
+                echo "Trying accelerated link..."
                 local proxy_remote="$GITHUB_PROXY/$original_remote"
                 git remote set-url origin "$proxy_remote"
                 
                 if git pull 2>&1; then
-                    # 恢复原始 remote
+                    # Restore original remote
                     git remote set-url origin "$original_remote"
                     cd "$SCRIPT_DIR"
-                    echo "✓ $operation 成功（使用加速链接）"
-                    # 设置全局变量，后续仓库默认使用加速链接
+                    echo "✓ $operation successful (using accelerated link)"
+                    # Set global variable, subsequent repositories use accelerated links by default
                     USE_PROXY=true
                     return 0
                 fi
                 
-                # 恢复原始 remote
+                # Restore original remote
                 git remote set-url origin "$original_remote"
             fi
             
@@ -174,269 +248,168 @@ git_operation() {
         
         retry=$((retry+1))
         if [ $retry -lt $max_retries ]; then
-            echo "重试中..."
+            echo "Retrying..."
             sleep 2
         fi
     done
     
-    echo "✗ $operation 失败"
+    echo "✗ $operation failed"
     return 1
 }
 
 echo "======================================"
-echo "Claude Code 安装和更新脚本"
+echo "Claude Code Installation and Update Script"
 echo "======================================"
 echo ""
 
 echo "======================================"
-echo "第一阶段: Git 仓库更新/克隆"
+echo "Stage 1: Git Repository Update/Clone"
 echo "======================================"
 echo ""
 
-echo "正在处理 agency-agents 项目..."
-if [ "$KEEP_REPOS" = "true" ] && [ -d "agency-agents/.git" ]; then
-    git_operation "pull" "" "agency-agents"
-else
-    echo "agency-agents 目录不存在或不是 git 仓库，开始 clone..."
-    rm -rf agency-agents
-    repo_url=$(get_repo_url "$AGENTS_REPO")
-    git_operation "clone" "$repo_url" "agency-agents"
-fi
-echo ""
-
-echo "正在处理 claude-plugins-official 项目..."
-if [ "$KEEP_REPOS" = "true" ] && [ -d "claude-plugins-official/.git" ]; then
-    git_operation "pull" "" "claude-plugins-official"
-else
-    echo "claude-plugins-official 目录不存在或不是 git 仓库，开始 clone..."
-    rm -rf claude-plugins-official
-    repo_url=$(get_repo_url "$PLUGINS_REPO")
-    git_operation "clone" "$repo_url" "claude-plugins-official"
-fi
-echo ""
-
-echo "正在处理 gstack 项目..."
-if [ "$KEEP_REPOS" = "true" ] && [ -d "gstack/.git" ]; then
-    git_operation "pull" "" "gstack"
-else
-    echo "gstack 目录不存在或不是 git 仓库，开始 clone..."
-    rm -rf gstack
-    repo_url=$(get_repo_url "$GSTACK_REPO")
-    git_operation "clone" "$repo_url" "gstack"
-fi
-echo ""
-
-echo "正在处理 superpowers 项目..."
-if [ "$KEEP_REPOS" = "true" ] && [ -d "superpowers/.git" ]; then
-    git_operation "pull" "" "superpowers"
-else
-    echo "superpowers 目录不存在或不是 git 仓库，开始 clone..."
-    rm -rf superpowers
-    repo_url=$(get_repo_url "$SUPERPOWERS_REPO")
-    git_operation "clone" "$repo_url" "superpowers"
-fi
-echo ""
-
-echo "正在处理 compound-engineering-plugin 项目..."
-if [ "$KEEP_REPOS" = "true" ] && [ -d "compound-engineering-plugin/.git" ]; then
-    git_operation "pull" "" "compound-engineering-plugin"
-else
-    echo "compound-engineering-plugin 目录不存在或不是 git 仓库，开始 clone..."
-    rm -rf compound-engineering-plugin
-    repo_url=$(get_repo_url "$COMPOUND_ENGINEERING_REPO")
-    git_operation "clone" "$repo_url" "compound-engineering-plugin"
-fi
-echo ""
-
-echo "正在处理 graphify 项目..."
-if [ "$KEEP_REPOS" = "true" ] && [ -d "graphify/.git" ]; then
-    git_operation "pull" "" "graphify"
-else
-    echo "graphify 目录不存在或不是 git 仓库，开始 clone..."
-    rm -rf graphify
-    repo_url=$(get_repo_url "$GRAPHIFY_REPO")
-    git_operation "clone" "$repo_url" "graphify"
-fi
-echo ""
-
-echo "正在处理 code-review-graph 项目..."
-if [ "$KEEP_REPOS" = "true" ] && [ -d "code-review-graph/.git" ]; then
-    git_operation "pull" "" "code-review-graph"
-else
-    echo "code-review-graph 目录不存在或不是 git 仓库，开始 clone..."
-    rm -rf code-review-graph
-    repo_url=$(get_repo_url "$CODE_REVIEW_GRAPH_REPO")
-    git_operation "clone" "$repo_url" "code-review-graph"
-fi
-echo ""
-
-echo "正在处理 GitNexus 项目..."
-if [ "$KEEP_REPOS" = "true" ] && [ -d "GitNexus/.git" ]; then
-    git_operation "pull" "" "GitNexus"
-else
-    echo "GitNexus 目录不存在或不是 git 仓库，开始 clone..."
-    rm -rf GitNexus
-    repo_url=$(get_repo_url "$GITNEXUS_REPO")
-    git_operation "clone" "$repo_url" "GitNexus"
-fi
-echo ""
-
-echo "正在处理 rtk 项目..."
-if [ "$KEEP_REPOS" = "true" ] && [ -d "rtk/.git" ]; then
-    git_operation "pull" "" "rtk"
-else
-    echo "rtk 目录不存在或不是 git 仓库，开始 clone..."
-    rm -rf rtk
-    repo_url=$(get_repo_url "$RTK_REPO")
-    git_operation "clone" "$repo_url" "rtk"
-fi
-echo ""
+# Process each Git repository
+process_repo "agency-agents" "AGENTS_REPO"
+process_repo "claude-plugins-official" "PLUGINS_REPO"
+process_repo "gstack" "GSTACK_REPO"
+process_repo "superpowers" "SUPERPOWERS_REPO"
+process_repo "compound-engineering-plugin" "COMPOUND_ENGINEERING_REPO"
+process_repo "graphify" "GRAPHIFY_REPO"
+process_repo "code-review-graph" "CODE_REVIEW_GRAPH_REPO"
+process_repo "GitNexus" "GITNEXUS_REPO"
+process_repo "rtk" "RTK_REPO"
 
 echo "======================================"
-echo "第二阶段: 工具安装"
+echo "Stage 2: Tool Installation"
 echo "======================================"
 echo ""
 
-echo "正在安装 graphify 工具..."
-cd graphify
-pip install -e .
-cd "$SCRIPT_DIR"
-echo "✓ graphify 工具安装完成"
-echo ""
+# Install each tool
+install_tool "graphify" "command -v graphify" "cd graphify && pip install . && cd \"$SCRIPT_DIR\"" "graphify --version" ""
+install_tool "code-review-graph" "command -v code-review-graph" "cd code-review-graph && pip install . && cd \"$SCRIPT_DIR\"" "code-review-graph --version" ""
+install_tool "GitNexus" "command -v npx && npx gitnexus --version 2>&1 | grep -q 'version'" "npm install -g gitnexus" "npx gitnexus --version" "version.*[0-9]+\\.[0-9]+\\.[0-9]+"
 
-echo "正在安装 code-review-graph 工具..."
-cd code-review-graph
-pip install -e .
-cd "$SCRIPT_DIR"
-echo "✓ code-review-graph 工具安装完成"
-echo ""
-
-echo "正在安装 GitNexus 工具..."
-npm install -g gitnexus
-echo "✓ GitNexus 工具安装完成"
-echo ""
-
-echo "正在安装 rtk 工具..."
+# Install rtk tool
+echo "Installing rtk tool..."
 if command -v rtk &> /dev/null; then
-    echo "rtk 已安装，检查版本..."
+    echo "rtk is already installed, checking version..."
     current_version=$(rtk --version 2>&1 | grep -E 'rtk [0-9]+\.[0-9]+\.[0-9]+' | awk '{print $2}')
     if [ -n "$current_version" ]; then
-        echo "当前 rtk 版本: $current_version"
-        echo "✓ rtk 工具已安装"
+        echo "Current rtk version: $current_version"
+        echo "✓ rtk tool is already installed"
     else
-        echo "rtk 版本检查失败，重新安装..."
+        echo "rtk version check failed, reinstalling..."
         if command -v brew &> /dev/null; then
-            echo "使用 Homebrew 安装 rtk..."
+            echo "Installing rtk using Homebrew..."
             brew install rtk
             if [ $? -eq 0 ]; then
-                echo "✓ rtk 工具安装完成"
+                echo "✓ rtk tool installation completed"
             else
-                echo "Homebrew 安装失败，尝试快速安装..."
+                echo "Homebrew installation failed, trying quick installation..."
                 curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
-                echo "✓ rtk 工具安装完成"
+                echo "✓ rtk tool installation completed"
             fi
         else
-            echo "Homebrew 不可用，使用快速安装..."
+            echo "Homebrew not available, using quick installation..."
             curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
-            echo "✓ rtk 工具安装完成"
+            echo "✓ rtk tool installation completed"
         fi
     fi
 else
-    echo "rtk 未安装，开始安装..."
+    echo "rtk is not installed, starting installation..."
     if command -v brew &> /dev/null; then
-        echo "使用 Homebrew 安装 rtk..."
+        echo "Installing rtk using Homebrew..."
         brew install rtk
         if [ $? -eq 0 ]; then
-            echo "✓ rtk 工具安装完成"
+            echo "✓ rtk tool installation completed"
         else
-            echo "Homebrew 安装失败，尝试快速安装..."
+            echo "Homebrew installation failed, trying quick installation..."
             curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
-            echo "✓ rtk 工具安装完成"
+            echo "✓ rtk tool installation completed"
         fi
     else
-        echo "Homebrew 不可用，使用快速安装..."
+        echo "Homebrew not available, using quick installation..."
         curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
-        echo "✓ rtk 工具安装完成"
+        echo "✓ rtk tool installation completed"
     fi
 fi
 echo ""
 
 echo "======================================"
-echo "第三阶段: Skills 安装"
+echo "Stage 3: Skills Installation"
 echo "======================================"
 echo ""
 
-echo "正在安装 gstack..."
-mkdir -p ~/.claude/skills
-rm -rf ~/.claude/skills/gstack
-cp -r gstack ~/.claude/skills/
-cd ~/.claude/skills/gstack
+# Install gstack skill
+install_skill "gstack" "gstack" "$HOME/.claude/skills/gstack"
+# Enter gstack directory and execute setup
+cd "$HOME/.claude/skills/gstack"
 ./setup --host claude
 cd "$SCRIPT_DIR"
-echo "✓ gstack 安装完成"
-echo ""
 
-echo "正在安装 superpowers 技能..."
-mkdir -p ~/.claude/skills
+# Install superpowers skills
+echo "Installing superpowers skills..."
+mkdir -p "$HOME/.claude/skills"
 for skill_dir in superpowers/skills/*; do
     if [ -d "$skill_dir" ]; then
         skill_name=$(basename "$skill_dir")
-        echo "  - 复制技能: $skill_name"
-        rm -rf ~/.claude/skills/"$skill_name"
-        cp -r "$skill_dir" ~/.claude/skills/
+        echo "  - Copying skill: $skill_name"
+        rm -rf "$HOME/.claude/skills/$skill_name"
+        cp -r "$skill_dir" "$HOME/.claude/skills/"
     fi
 done
-echo "✓ superpowers 技能安装完成"
+echo "✓ superpowers skills installation completed"
 echo ""
 
-echo "正在安装 compound-engineering 技能..."
-mkdir -p ~/.claude/skills
+# Install compound-engineering skills
+echo "Installing compound-engineering skills..."
+mkdir -p "$HOME/.claude/skills"
 for skill_dir in compound-engineering-plugin/plugins/compound-engineering/skills/*; do
     if [ -d "$skill_dir" ]; then
         skill_name=$(basename "$skill_dir")
-        echo "  - 复制技能: $skill_name"
-        rm -rf ~/.claude/skills/"$skill_name"
-        cp -r "$skill_dir" ~/.claude/skills/
+        echo "  - Copying skill: $skill_name"
+        rm -rf "$HOME/.claude/skills/$skill_name"
+        cp -r "$skill_dir" "$HOME/.claude/skills/"
     fi
 done
-echo "✓ compound-engineering 技能安装完成"
+echo "✓ compound-engineering skills installation completed"
 echo ""
 
-echo "正在安装 graphify 技能..."
+# Install graphify skill
+echo "Installing graphify skill..."
 graphify install --platform claude
-echo "✓ graphify 技能安装完成"
+echo "✓ graphify skill installation completed"
 echo ""
 
 echo "======================================"
-echo "第四阶段: Agents 安装"
+echo "Stage 4: Agents Installation"
 echo "======================================"
 echo ""
 
-echo "正在复制 Agents 到 Claude 配置目录..."
-mkdir -p ~/.claude/agents
-cp -r agency-agents/* ~/.claude/agents/
-echo "✓ Agents 安装完成"
+echo "Copying Agents to Claude configuration directory..."
+mkdir -p "$HOME/.claude/agents"
+cp -r agency-agents/* "$HOME/.claude/agents/"
+echo "✓ Agents installation completed"
 echo ""
 
-echo "正在复制 compound-engineering agents 到 Claude 配置目录..."
-mkdir -p ~/.claude/agents
-cp -r compound-engineering-plugin/plugins/compound-engineering/agents/* ~/.claude/agents/
-echo "✓ compound-engineering agents 安装完成"
-echo ""
-
-echo "======================================"
-echo "第五阶段: Plugins 安装"
-echo "======================================"
-echo ""
-
-echo "正在复制 Plugins 到 Claude 配置目录..."
-mkdir -p ~/.claude/plugins/marketplaces
-cp -r claude-plugins-official/* ~/.claude/plugins/marketplaces/claude-plugins-official
-echo "✓ Plugins 安装完成"
+echo "Copying compound-engineering agents to Claude configuration directory..."
+mkdir -p "$HOME/.claude/agents"
+cp -r compound-engineering-plugin/plugins/compound-engineering/agents/* "$HOME/.claude/agents/"
+echo "✓ compound-engineering agents installation completed"
 echo ""
 
 echo "======================================"
-echo "第六阶段: Claude 插件安装"
+echo "Stage 5: Plugins Installation"
+echo "======================================"
+echo ""
+
+echo "Copying Plugins to Claude configuration directory..."
+mkdir -p "$HOME/.claude/plugins/marketplaces"
+cp -r claude-plugins-official/* "$HOME/.claude/plugins/marketplaces/claude-plugins-official"
+echo "✓ Plugins installation completed"
+echo ""
+
+echo "======================================"
+echo "Stage 6: Claude Plugins Installation"
 echo "======================================"
 echo ""
 
@@ -450,59 +423,63 @@ plugins=(
     "pyright-lsp"
 )
 
-echo "正在安装 Claude 插件..."
+echo "Installing Claude plugins..."
 for plugin in "${plugins[@]}"; do
-    echo "  - 安装插件: $plugin"
-    claude plugin install "$plugin"
+    echo "  - Installing plugin: $plugin"
+    if claude plugin install "$plugin" 2>&1; then
+        echo "    ✓ Installation successful"
+    else
+        echo "    ✗ Installation failed (plugin may not exist or marketplace not configured)"
+    fi
 done
-echo "✓ Claude 插件安装完成"
+echo "✓ Claude plugins installation completed"
 echo ""
 
 echo "======================================"
-echo "✓ 所有安装步骤完成!"
+echo "✓ All installation steps completed!"
 echo "======================================"
 echo ""
 
-# 清理 git 仓库（如果用户选择不保留）
+# Clean up git repositories (if user chooses not to keep)
 if [ "$KEEP_REPOS" = "false" ]; then
     echo "======================================"
-    echo "清理临时文件"
-    echo "======================================"
-    echo ""
-    echo "正在删除 git 仓库..."
+echo "Cleaning up temporary files"
+echo "======================================"
+echo ""
+echo "Deleting git repositories..."
     rm -rf agency-agents claude-plugins-official gstack superpowers compound-engineering-plugin graphify code-review-graph GitNexus rtk
-    echo "✓ 清理完成"
-    echo ""
-    echo "提示: 如果需要保留 git 仓库以便后续更新，请使用 --keep-repos 参数运行脚本。"
-    echo ""
+echo "✓ Cleanup completed"
+echo ""
+echo "Note: If you need to keep git repositories for future updates, please run the script with --keep-repos parameter."
+echo ""
 fi
 
 echo "======================================"
-echo "使用说明"
+echo "Usage Guide"
 echo "======================================"
 echo ""
-echo "code-review-graph 使用指南:"
-echo "请在具体的代码项目根目录中执行以下命令:"
-echo "  1. code-review-graph install --platform claude-code  # 配置 code-review-graph"
-echo "  2. code-review-graph build                         # 构建代码库图谱"
+echo "code-review-graph Usage Guide:"
+echo "Please execute the following commands in the root directory of your code project:"
+echo "  1. code-review-graph install --platform claude-code  # Configure code-review-graph"
+echo "  2. code-review-graph build                         # Build codebase graph"
 echo ""
-echo "这样 Claude Code 在处理代码时会只读取相关文件，大幅减少 token 使用。"
+echo "This way, Claude Code will only read relevant files when processing code, greatly reducing token usage."
 echo ""
-echo "GitNexus 使用指南:"
-echo "请在具体的代码项目根目录中执行以下命令:"
-echo "  1. npx gitnexus analyze  # 分析代码库并创建知识图谱"
-echo "  2. npx gitnexus setup    # 配置 MCP 服务器（仅需执行一次）"
+echo "GitNexus Usage Guide:"
+echo "Please execute the following commands in the root directory of your code project:"
+echo "  1. npx gitnexus analyze  # Analyze codebase and create knowledge graph"
+echo "  2. npx gitnexus setup    # Configure MCP server (only need to execute once)"
 echo ""
-echo "这样 Claude Code 会获得代码库的深度架构视图，避免遗漏依赖和破坏调用链。"
+echo "This way, Claude Code will obtain a deep architectural view of the codebase, avoiding missing dependencies and breaking call chains."
 echo ""
-echo "rtk 使用指南:"
-echo "1. 初始化 rtk（仅需执行一次）:"
-echo "   rtk init -g  # 为 Claude Code / Copilot 配置"
-echo "   rtk init -g --gemini  # 为 Gemini CLI 配置"
-echo "   rtk init -g --codex  # 为 Codex (OpenAI) 配置"
+echo "rtk Usage Guide:"
+echo "1. Initialize rtk (only need to execute once):"
+echo "   rtk init -g  # Configure for Claude Code / Copilot"
+echo "   rtk init -g --gemini  # Configure for Gemini CLI"
+echo "   rtk init -g --codex  # Configure for Codex (OpenAI)"
 echo ""
-echo "2. 重新启动你的 AI 工具，然后测试:"
-echo "   git status  # 会自动重写为 rtk git status"
+echo "2. Restart your AI tool, then test:"
+echo "   git status  # Will be automatically rewritten to rtk git status"
 echo ""
-echo "这样可以减少 LLM token 消耗 60-90%，大幅提高代码处理效率。"
+echo "This can reduce LLM token consumption by 60-90%, greatly improving code processing efficiency."
 echo ""
