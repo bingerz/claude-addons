@@ -14,6 +14,7 @@ COMPOUND_ENGINEERING_REPO="https://github.com/EveryInc/compound-engineering-plug
 GRAPHIFY_REPO="https://github.com/safishamsi/graphify.git"
 CODE_REVIEW_GRAPH_REPO="https://github.com/tirth8205/code-review-graph.git"
 GITNEXUS_REPO="https://github.com/abhigyanpatwari/GitNexus.git"
+RTK_REPO="https://github.com/rtk-ai/rtk.git"
 
 # GitHub加速工具
 GITHUB_PROXY="https://gh-proxy.org"
@@ -40,26 +41,26 @@ get_repo_url() {
     
     # 检查原始链接是否已经是加速链接
     if [[ "$repo_url" == *"$GITHUB_PROXY"* ]]; then
-        echo "使用加速链接: $repo_url"
-        echo "$repo_url"
+        echo "使用加速链接: $repo_url" >&2
         # 设置全局变量，后续仓库默认使用加速链接
         USE_PROXY=true
+        echo "$repo_url"
         return
     fi
     
     # 如果已经确定使用加速链接，直接返回
     if [ "$USE_PROXY" = "true" ]; then
-        echo "使用加速链接: $proxy_url"
+        echo "使用加速链接: $proxy_url" >&2
         echo "$proxy_url"
         return
     fi
     
     # 测试原始链接
     if check_network "$repo_url"; then
-        echo "使用原始链接: $repo_url"
+        echo "使用原始链接: $repo_url" >&2
         echo "$repo_url"
     else
-        echo "使用加速链接: $proxy_url"
+        echo "使用加速链接: $proxy_url" >&2
         # 设置全局变量，后续仓库默认使用加速链接
         USE_PROXY=true
         echo "$proxy_url"
@@ -81,6 +82,16 @@ git_operation() {
             if git clone --depth 1 "$repo_url" "$target_dir" 2>&1; then
                 echo "✓ $operation 成功"
                 return 0
+            else
+                # 尝试使用加速链接
+                echo "尝试使用加速链接..."
+                local proxy_url="$GITHUB_PROXY/$repo_url"
+                if git clone --depth 1 "$proxy_url" "$target_dir" 2>&1; then
+                    echo "✓ $operation 成功（使用加速链接）"
+                    # 设置全局变量，后续仓库默认使用加速链接
+                    USE_PROXY=true
+                    return 0
+                fi
             fi
         elif [ "$operation" = "pull" ]; then
             cd "$target_dir"
@@ -172,7 +183,7 @@ if [ -d "agency-agents/.git" ]; then
 else
     echo "agency-agents 目录不存在或不是 git 仓库，开始 clone..."
     rm -rf agency-agents
-    local repo_url=$(get_repo_url "$AGENTS_REPO")
+    repo_url=$(get_repo_url "$AGENTS_REPO")
     git_operation "clone" "$repo_url" "agency-agents"
 fi
 echo ""
@@ -183,7 +194,7 @@ if [ -d "claude-plugins-official/.git" ]; then
 else
     echo "claude-plugins-official 目录不存在或不是 git 仓库，开始 clone..."
     rm -rf claude-plugins-official
-    local repo_url=$(get_repo_url "$PLUGINS_REPO")
+    repo_url=$(get_repo_url "$PLUGINS_REPO")
     git_operation "clone" "$repo_url" "claude-plugins-official"
 fi
 echo ""
@@ -194,7 +205,7 @@ if [ -d "gstack/.git" ]; then
 else
     echo "gstack 目录不存在或不是 git 仓库，开始 clone..."
     rm -rf gstack
-    local repo_url=$(get_repo_url "$GSTACK_REPO")
+    repo_url=$(get_repo_url "$GSTACK_REPO")
     git_operation "clone" "$repo_url" "gstack"
 fi
 echo ""
@@ -205,7 +216,7 @@ if [ -d "superpowers/.git" ]; then
 else
     echo "superpowers 目录不存在或不是 git 仓库，开始 clone..."
     rm -rf superpowers
-    local repo_url=$(get_repo_url "$SUPERPOWERS_REPO")
+    repo_url=$(get_repo_url "$SUPERPOWERS_REPO")
     git_operation "clone" "$repo_url" "superpowers"
 fi
 echo ""
@@ -216,7 +227,7 @@ if [ -d "compound-engineering-plugin/.git" ]; then
 else
     echo "compound-engineering-plugin 目录不存在或不是 git 仓库，开始 clone..."
     rm -rf compound-engineering-plugin
-    local repo_url=$(get_repo_url "$COMPOUND_ENGINEERING_REPO")
+    repo_url=$(get_repo_url "$COMPOUND_ENGINEERING_REPO")
     git_operation "clone" "$repo_url" "compound-engineering-plugin"
 fi
 echo ""
@@ -227,7 +238,7 @@ if [ -d "graphify/.git" ]; then
 else
     echo "graphify 目录不存在或不是 git 仓库，开始 clone..."
     rm -rf graphify
-    local repo_url=$(get_repo_url "$GRAPHIFY_REPO")
+    repo_url=$(get_repo_url "$GRAPHIFY_REPO")
     git_operation "clone" "$repo_url" "graphify"
 fi
 echo ""
@@ -238,7 +249,7 @@ if [ -d "code-review-graph/.git" ]; then
 else
     echo "code-review-graph 目录不存在或不是 git 仓库，开始 clone..."
     rm -rf code-review-graph
-    local repo_url=$(get_repo_url "$CODE_REVIEW_GRAPH_REPO")
+    repo_url=$(get_repo_url "$CODE_REVIEW_GRAPH_REPO")
     git_operation "clone" "$repo_url" "code-review-graph"
 fi
 echo ""
@@ -251,6 +262,17 @@ else
     rm -rf GitNexus
     repo_url=$(get_repo_url "$GITNEXUS_REPO")
     git_operation "clone" "$repo_url" "GitNexus"
+fi
+echo ""
+
+echo "正在处理 rtk 项目..."
+if [ -d "rtk/.git" ]; then
+    git_operation "pull" "" "rtk"
+else
+    echo "rtk 目录不存在或不是 git 仓库，开始 clone..."
+    rm -rf rtk
+    repo_url=$(get_repo_url "$RTK_REPO")
+    git_operation "clone" "$repo_url" "rtk"
 fi
 echo ""
 
@@ -278,6 +300,24 @@ npm install -g gitnexus
 echo "✓ GitNexus 工具安装完成"
 echo ""
 
+echo "正在安装 rtk 工具..."
+if command -v brew &> /dev/null; then
+    echo "使用 Homebrew 安装 rtk..."
+    brew install rtk
+    if [ $? -eq 0 ]; then
+        echo "✓ rtk 工具安装完成"
+    else
+        echo "Homebrew 安装失败，尝试快速安装..."
+        curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
+        echo "✓ rtk 工具安装完成"
+    fi
+else
+    echo "Homebrew 不可用，使用快速安装..."
+    curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
+    echo "✓ rtk 工具安装完成"
+fi
+echo ""
+
 echo "======================================"
 echo "第三阶段: Skills 安装"
 echo "======================================"
@@ -288,7 +328,7 @@ mkdir -p ~/.claude/skills
 rm -rf ~/.claude/skills/gstack
 cp -r gstack ~/.claude/skills/
 cd ~/.claude/skills/gstack
-./setup
+./setup --host claude
 cd "$SCRIPT_DIR"
 echo "✓ gstack 安装完成"
 echo ""
@@ -320,7 +360,7 @@ echo "✓ compound-engineering 技能安装完成"
 echo ""
 
 echo "正在安装 graphify 技能..."
-graphify install
+graphify install --platform claude
 echo "✓ graphify 技能安装完成"
 echo ""
 
@@ -396,4 +436,15 @@ echo "  1. npx gitnexus analyze  # 分析代码库并创建知识图谱"
 echo "  2. npx gitnexus setup    # 配置 MCP 服务器（仅需执行一次）"
 echo ""
 echo "这样 Claude Code 会获得代码库的深度架构视图，避免遗漏依赖和破坏调用链。"
+echo ""
+echo "rtk 使用指南:"
+echo "1. 初始化 rtk（仅需执行一次）:"
+echo "   rtk init -g  # 为 Claude Code / Copilot 配置"
+echo "   rtk init -g --gemini  # 为 Gemini CLI 配置"
+echo "   rtk init -g --codex  # 为 Codex (OpenAI) 配置"
+echo ""
+echo "2. 重新启动你的 AI 工具，然后测试:"
+echo "   git status  # 会自动重写为 rtk git status"
+echo ""
+echo "这样可以减少 LLM token 消耗 60-90%，大幅提高代码处理效率。"
 echo ""
