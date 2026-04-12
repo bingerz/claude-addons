@@ -5,11 +5,156 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
+# 原始仓库链接
 AGENTS_REPO="https://github.com/msitarzewski/agency-agents.git"
 PLUGINS_REPO="https://github.com/anthropics/claude-plugins-official.git"
 GSTACK_REPO="https://github.com/garrytan/gstack.git"
 SUPERPOWERS_REPO="https://github.com/obra/superpowers.git"
 COMPOUND_ENGINEERING_REPO="https://github.com/EveryInc/compound-engineering-plugin.git"
+GRAPHIFY_REPO="https://github.com/safishamsi/graphify.git"
+CODE_REVIEW_GRAPH_REPO="https://github.com/tirth8205/code-review-graph.git"
+GITNEXUS_REPO="https://github.com/abhigyanpatwari/GitNexus.git"
+
+# GitHub加速工具
+GITHUB_PROXY="https://gh-proxy.org"
+
+# 全局变量：是否使用加速链接
+USE_PROXY=false
+
+# 网络测试函数
+check_network() {
+    local url="$1"
+    local timeout=3
+    
+    if curl -s --max-time $timeout "$url" > /dev/null; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# 获取仓库链接（根据网络状况）
+get_repo_url() {
+    local repo_url="$1"
+    local proxy_url="$GITHUB_PROXY/$repo_url"
+    
+    # 检查原始链接是否已经是加速链接
+    if [[ "$repo_url" == *"$GITHUB_PROXY"* ]]; then
+        echo "使用加速链接: $repo_url"
+        echo "$repo_url"
+        # 设置全局变量，后续仓库默认使用加速链接
+        USE_PROXY=true
+        return
+    fi
+    
+    # 如果已经确定使用加速链接，直接返回
+    if [ "$USE_PROXY" = "true" ]; then
+        echo "使用加速链接: $proxy_url"
+        echo "$proxy_url"
+        return
+    fi
+    
+    # 测试原始链接
+    if check_network "$repo_url"; then
+        echo "使用原始链接: $repo_url"
+        echo "$repo_url"
+    else
+        echo "使用加速链接: $proxy_url"
+        # 设置全局变量，后续仓库默认使用加速链接
+        USE_PROXY=true
+        echo "$proxy_url"
+    fi
+}
+
+# Git操作函数（带超时和重试）
+git_operation() {
+    local operation="$1"
+    local repo_url="$2"
+    local target_dir="$3"
+    local max_retries=1  # 减少重试次数以节省时间
+    local retry=0
+    
+    while [ $retry -lt $max_retries ]; do
+        echo "尝试 $operation ($((retry+1))/$max_retries)..."
+        
+        if [ "$operation" = "clone" ]; then
+            if git clone --depth 1 "$repo_url" "$target_dir" 2>&1; then
+                echo "✓ $operation 成功"
+                return 0
+            fi
+        elif [ "$operation" = "pull" ]; then
+            cd "$target_dir"
+            
+            # 获取原始 remote
+            local original_remote=$(git remote get-url origin)
+            
+            # 检查原始 remote 是否已经是加速链接
+            if [[ "$original_remote" == *"$GITHUB_PROXY"* ]]; then
+                local is_proxy_remote=true
+            else
+                local is_proxy_remote=false
+            fi
+            
+            # 如果全局设置了使用加速链接，直接切换
+            if [ "$USE_PROXY" = "true" ] && [ "$is_proxy_remote" = "false" ]; then
+                echo "使用加速链接进行 pull..."
+                local proxy_remote="$GITHUB_PROXY/$original_remote"
+                git remote set-url origin "$proxy_remote"
+                
+                if git pull 2>&1; then
+                    # 恢复原始 remote
+                    git remote set-url origin "$original_remote"
+                    cd "$SCRIPT_DIR"
+                    echo "✓ $operation 成功（使用加速链接）"
+                    return 0
+                fi
+                
+                # 恢复原始 remote
+                git remote set-url origin "$original_remote"
+                cd "$SCRIPT_DIR"
+                return 1
+            fi
+            
+            # 尝试原始 pull
+            if git pull 2>&1; then
+                cd "$SCRIPT_DIR"
+                echo "✓ $operation 成功"
+                return 0
+            fi
+            
+            # 如果失败，尝试使用加速链接（如果还没有使用）
+            if [ "$is_proxy_remote" = "false" ]; then
+                echo "尝试使用加速链接..."
+                local proxy_remote="$GITHUB_PROXY/$original_remote"
+                git remote set-url origin "$proxy_remote"
+                
+                if git pull 2>&1; then
+                    # 恢复原始 remote
+                    git remote set-url origin "$original_remote"
+                    cd "$SCRIPT_DIR"
+                    echo "✓ $operation 成功（使用加速链接）"
+                    # 设置全局变量，后续仓库默认使用加速链接
+                    USE_PROXY=true
+                    return 0
+                fi
+                
+                # 恢复原始 remote
+                git remote set-url origin "$original_remote"
+            fi
+            
+            cd "$SCRIPT_DIR"
+        fi
+        
+        retry=$((retry+1))
+        if [ $retry -lt $max_retries ]; then
+            echo "重试中..."
+            sleep 2
+        fi
+    done
+    
+    echo "✗ $operation 失败"
+    return 1
+}
 
 echo "======================================"
 echo "Claude Code 安装和更新脚本"
@@ -23,76 +168,118 @@ echo ""
 
 echo "正在处理 agency-agents 项目..."
 if [ -d "agency-agents/.git" ]; then
-    cd agency-agents
-    git pull
-    cd ..
-    echo "✓ agency-agents 更新完成"
+    git_operation "pull" "" "agency-agents"
 else
     echo "agency-agents 目录不存在或不是 git 仓库，开始 clone..."
     rm -rf agency-agents
-    git clone "$AGENTS_REPO" agency-agents
-    echo "✓ agency-agents clone 完成"
+    local repo_url=$(get_repo_url "$AGENTS_REPO")
+    git_operation "clone" "$repo_url" "agency-agents"
 fi
 echo ""
 
 echo "正在处理 claude-plugins-official 项目..."
 if [ -d "claude-plugins-official/.git" ]; then
-    cd claude-plugins-official
-    git pull
-    cd ..
-    echo "✓ claude-plugins-official 更新完成"
+    git_operation "pull" "" "claude-plugins-official"
 else
     echo "claude-plugins-official 目录不存在或不是 git 仓库，开始 clone..."
     rm -rf claude-plugins-official
-    git clone "$PLUGINS_REPO" claude-plugins-official
-    echo "✓ claude-plugins-official clone 完成"
+    local repo_url=$(get_repo_url "$PLUGINS_REPO")
+    git_operation "clone" "$repo_url" "claude-plugins-official"
 fi
 echo ""
 
 echo "正在处理 gstack 项目..."
 if [ -d "gstack/.git" ]; then
-    cd gstack
-    git pull
-    cd ..
-    echo "✓ gstack 更新完成"
+    git_operation "pull" "" "gstack"
 else
     echo "gstack 目录不存在或不是 git 仓库，开始 clone..."
     rm -rf gstack
-    git clone --single-branch --depth 1 "$GSTACK_REPO" gstack
-    echo "✓ gstack clone 完成"
+    local repo_url=$(get_repo_url "$GSTACK_REPO")
+    git_operation "clone" "$repo_url" "gstack"
 fi
 echo ""
 
 echo "正在处理 superpowers 项目..."
 if [ -d "superpowers/.git" ]; then
-    cd superpowers
-    git pull
-    cd ..
-    echo "✓ superpowers 更新完成"
+    git_operation "pull" "" "superpowers"
 else
     echo "superpowers 目录不存在或不是 git 仓库，开始 clone..."
     rm -rf superpowers
-    git clone "$SUPERPOWERS_REPO" superpowers
-    echo "✓ superpowers clone 完成"
+    local repo_url=$(get_repo_url "$SUPERPOWERS_REPO")
+    git_operation "clone" "$repo_url" "superpowers"
 fi
 echo ""
 
 echo "正在处理 compound-engineering-plugin 项目..."
 if [ -d "compound-engineering-plugin/.git" ]; then
-    cd compound-engineering-plugin
-    git pull
-    cd ..
-    echo "✓ compound-engineering-plugin 更新完成"
+    git_operation "pull" "" "compound-engineering-plugin"
 else
     echo "compound-engineering-plugin 目录不存在或不是 git 仓库，开始 clone..."
     rm -rf compound-engineering-plugin
-    git clone "$COMPOUND_ENGINEERING_REPO" compound-engineering-plugin
-    echo "✓ compound-engineering-plugin clone 完成"
+    local repo_url=$(get_repo_url "$COMPOUND_ENGINEERING_REPO")
+    git_operation "clone" "$repo_url" "compound-engineering-plugin"
+fi
+echo ""
+
+echo "正在处理 graphify 项目..."
+if [ -d "graphify/.git" ]; then
+    git_operation "pull" "" "graphify"
+else
+    echo "graphify 目录不存在或不是 git 仓库，开始 clone..."
+    rm -rf graphify
+    local repo_url=$(get_repo_url "$GRAPHIFY_REPO")
+    git_operation "clone" "$repo_url" "graphify"
+fi
+echo ""
+
+echo "正在处理 code-review-graph 项目..."
+if [ -d "code-review-graph/.git" ]; then
+    git_operation "pull" "" "code-review-graph"
+else
+    echo "code-review-graph 目录不存在或不是 git 仓库，开始 clone..."
+    rm -rf code-review-graph
+    local repo_url=$(get_repo_url "$CODE_REVIEW_GRAPH_REPO")
+    git_operation "clone" "$repo_url" "code-review-graph"
+fi
+echo ""
+
+echo "正在处理 GitNexus 项目..."
+if [ -d "GitNexus/.git" ]; then
+    git_operation "pull" "" "GitNexus"
+else
+    echo "GitNexus 目录不存在或不是 git 仓库，开始 clone..."
+    rm -rf GitNexus
+    repo_url=$(get_repo_url "$GITNEXUS_REPO")
+    git_operation "clone" "$repo_url" "GitNexus"
 fi
 echo ""
 
 echo "======================================"
-echo "第二阶段: Skills 安装"
+echo "第二阶段: 工具安装"
+echo "======================================"
+echo ""
+
+echo "正在安装 graphify 工具..."
+cd graphify
+pip install -e .
+cd "$SCRIPT_DIR"
+echo "✓ graphify 工具安装完成"
+echo ""
+
+echo "正在安装 code-review-graph 工具..."
+cd code-review-graph
+pip install -e .
+cd "$SCRIPT_DIR"
+echo "✓ code-review-graph 工具安装完成"
+echo ""
+
+echo "正在安装 GitNexus 工具..."
+npm install -g gitnexus
+echo "✓ GitNexus 工具安装完成"
+echo ""
+
+echo "======================================"
+echo "第三阶段: Skills 安装"
 echo "======================================"
 echo ""
 
@@ -132,8 +319,13 @@ done
 echo "✓ compound-engineering 技能安装完成"
 echo ""
 
+echo "正在安装 graphify 技能..."
+graphify install
+echo "✓ graphify 技能安装完成"
+echo ""
+
 echo "======================================"
-echo "第三阶段: Agents 安装"
+echo "第四阶段: Agents 安装"
 echo "======================================"
 echo ""
 
@@ -150,7 +342,7 @@ echo "✓ compound-engineering agents 安装完成"
 echo ""
 
 echo "======================================"
-echo "第四阶段: Plugins 安装"
+echo "第五阶段: Plugins 安装"
 echo "======================================"
 echo ""
 
@@ -161,7 +353,7 @@ echo "✓ Plugins 安装完成"
 echo ""
 
 echo "======================================"
-echo "第五阶段: Claude 插件安装"
+echo "第六阶段: Claude 插件安装"
 echo "======================================"
 echo ""
 
@@ -186,3 +378,22 @@ echo ""
 echo "======================================"
 echo "✓ 所有安装步骤完成!"
 echo "======================================"
+echo ""
+echo "======================================"
+echo "使用说明"
+echo "======================================"
+echo ""
+echo "code-review-graph 使用指南:"
+echo "请在具体的代码项目根目录中执行以下命令:"
+echo "  1. code-review-graph install --platform claude-code  # 配置 code-review-graph"
+echo "  2. code-review-graph build                         # 构建代码库图谱"
+echo ""
+echo "这样 Claude Code 在处理代码时会只读取相关文件，大幅减少 token 使用。"
+echo ""
+echo "GitNexus 使用指南:"
+echo "请在具体的代码项目根目录中执行以下命令:"
+echo "  1. npx gitnexus analyze  # 分析代码库并创建知识图谱"
+echo "  2. npx gitnexus setup    # 配置 MCP 服务器（仅需执行一次）"
+echo ""
+echo "这样 Claude Code 会获得代码库的深度架构视图，避免遗漏依赖和破坏调用链。"
+echo ""
