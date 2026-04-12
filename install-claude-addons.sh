@@ -1,6 +1,22 @@
 #!/bin/bash
 
-set -e
+# 全局变量：是否使用加速链接
+USE_PROXY=false
+# 全局变量：是否保留 git 仓库
+KEEP_REPOS=false
+
+# 解析命令行参数
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --keep-repos)
+            KEEP_REPOS=true
+            shift
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
@@ -178,7 +194,7 @@ echo "======================================"
 echo ""
 
 echo "正在处理 agency-agents 项目..."
-if [ -d "agency-agents/.git" ]; then
+if [ "$KEEP_REPOS" = "true" ] && [ -d "agency-agents/.git" ]; then
     git_operation "pull" "" "agency-agents"
 else
     echo "agency-agents 目录不存在或不是 git 仓库，开始 clone..."
@@ -189,7 +205,7 @@ fi
 echo ""
 
 echo "正在处理 claude-plugins-official 项目..."
-if [ -d "claude-plugins-official/.git" ]; then
+if [ "$KEEP_REPOS" = "true" ] && [ -d "claude-plugins-official/.git" ]; then
     git_operation "pull" "" "claude-plugins-official"
 else
     echo "claude-plugins-official 目录不存在或不是 git 仓库，开始 clone..."
@@ -200,7 +216,7 @@ fi
 echo ""
 
 echo "正在处理 gstack 项目..."
-if [ -d "gstack/.git" ]; then
+if [ "$KEEP_REPOS" = "true" ] && [ -d "gstack/.git" ]; then
     git_operation "pull" "" "gstack"
 else
     echo "gstack 目录不存在或不是 git 仓库，开始 clone..."
@@ -211,7 +227,7 @@ fi
 echo ""
 
 echo "正在处理 superpowers 项目..."
-if [ -d "superpowers/.git" ]; then
+if [ "$KEEP_REPOS" = "true" ] && [ -d "superpowers/.git" ]; then
     git_operation "pull" "" "superpowers"
 else
     echo "superpowers 目录不存在或不是 git 仓库，开始 clone..."
@@ -222,7 +238,7 @@ fi
 echo ""
 
 echo "正在处理 compound-engineering-plugin 项目..."
-if [ -d "compound-engineering-plugin/.git" ]; then
+if [ "$KEEP_REPOS" = "true" ] && [ -d "compound-engineering-plugin/.git" ]; then
     git_operation "pull" "" "compound-engineering-plugin"
 else
     echo "compound-engineering-plugin 目录不存在或不是 git 仓库，开始 clone..."
@@ -233,7 +249,7 @@ fi
 echo ""
 
 echo "正在处理 graphify 项目..."
-if [ -d "graphify/.git" ]; then
+if [ "$KEEP_REPOS" = "true" ] && [ -d "graphify/.git" ]; then
     git_operation "pull" "" "graphify"
 else
     echo "graphify 目录不存在或不是 git 仓库，开始 clone..."
@@ -244,7 +260,7 @@ fi
 echo ""
 
 echo "正在处理 code-review-graph 项目..."
-if [ -d "code-review-graph/.git" ]; then
+if [ "$KEEP_REPOS" = "true" ] && [ -d "code-review-graph/.git" ]; then
     git_operation "pull" "" "code-review-graph"
 else
     echo "code-review-graph 目录不存在或不是 git 仓库，开始 clone..."
@@ -255,7 +271,7 @@ fi
 echo ""
 
 echo "正在处理 GitNexus 项目..."
-if [ -d "GitNexus/.git" ]; then
+if [ "$KEEP_REPOS" = "true" ] && [ -d "GitNexus/.git" ]; then
     git_operation "pull" "" "GitNexus"
 else
     echo "GitNexus 目录不存在或不是 git 仓库，开始 clone..."
@@ -266,7 +282,7 @@ fi
 echo ""
 
 echo "正在处理 rtk 项目..."
-if [ -d "rtk/.git" ]; then
+if [ "$KEEP_REPOS" = "true" ] && [ -d "rtk/.git" ]; then
     git_operation "pull" "" "rtk"
 else
     echo "rtk 目录不存在或不是 git 仓库，开始 clone..."
@@ -301,20 +317,47 @@ echo "✓ GitNexus 工具安装完成"
 echo ""
 
 echo "正在安装 rtk 工具..."
-if command -v brew &> /dev/null; then
-    echo "使用 Homebrew 安装 rtk..."
-    brew install rtk
-    if [ $? -eq 0 ]; then
-        echo "✓ rtk 工具安装完成"
+if command -v rtk &> /dev/null; then
+    echo "rtk 已安装，检查版本..."
+    current_version=$(rtk --version 2>&1 | grep -E 'rtk [0-9]+\.[0-9]+\.[0-9]+' | awk '{print $2}')
+    if [ -n "$current_version" ]; then
+        echo "当前 rtk 版本: $current_version"
+        echo "✓ rtk 工具已安装"
     else
-        echo "Homebrew 安装失败，尝试快速安装..."
+        echo "rtk 版本检查失败，重新安装..."
+        if command -v brew &> /dev/null; then
+            echo "使用 Homebrew 安装 rtk..."
+            brew install rtk
+            if [ $? -eq 0 ]; then
+                echo "✓ rtk 工具安装完成"
+            else
+                echo "Homebrew 安装失败，尝试快速安装..."
+                curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
+                echo "✓ rtk 工具安装完成"
+            fi
+        else
+            echo "Homebrew 不可用，使用快速安装..."
+            curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
+            echo "✓ rtk 工具安装完成"
+        fi
+    fi
+else
+    echo "rtk 未安装，开始安装..."
+    if command -v brew &> /dev/null; then
+        echo "使用 Homebrew 安装 rtk..."
+        brew install rtk
+        if [ $? -eq 0 ]; then
+            echo "✓ rtk 工具安装完成"
+        else
+            echo "Homebrew 安装失败，尝试快速安装..."
+            curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
+            echo "✓ rtk 工具安装完成"
+        fi
+    else
+        echo "Homebrew 不可用，使用快速安装..."
         curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
         echo "✓ rtk 工具安装完成"
     fi
-else
-    echo "Homebrew 不可用，使用快速安装..."
-    curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
-    echo "✓ rtk 工具安装完成"
 fi
 echo ""
 
@@ -419,6 +462,21 @@ echo "======================================"
 echo "✓ 所有安装步骤完成!"
 echo "======================================"
 echo ""
+
+# 清理 git 仓库（如果用户选择不保留）
+if [ "$KEEP_REPOS" = "false" ]; then
+    echo "======================================"
+    echo "清理临时文件"
+    echo "======================================"
+    echo ""
+    echo "正在删除 git 仓库..."
+    rm -rf agency-agents claude-plugins-official gstack superpowers compound-engineering-plugin graphify code-review-graph GitNexus rtk
+    echo "✓ 清理完成"
+    echo ""
+    echo "提示: 如果需要保留 git 仓库以便后续更新，请使用 --keep-repos 参数运行脚本。"
+    echo ""
+fi
+
 echo "======================================"
 echo "使用说明"
 echo "======================================"
