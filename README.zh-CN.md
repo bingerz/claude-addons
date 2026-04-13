@@ -64,68 +64,11 @@ curl -fsSL https://raw.githubusercontent.com/bingerz/claude-addons/refs/heads/ma
 
 ### 工具使用指南
 
-#### code-review-graph
-
-1. 在代码项目根目录执行：
-   ```bash
-   code-review-graph install --platform claude-code  # 配置 code-review-graph
-   code-review-graph build                         # 构建代码库图谱
-   ```
-
-2. 作用：Claude Code 在处理代码时会只读取相关文件，大幅减少 token 使用。
-
-#### GitNexus
-
-1. 在代码项目根目录执行：
-   ```bash
-   npx gitnexus analyze  # 分析代码库并创建知识图谱
-   npx gitnexus setup    # 配置 MCP 服务器（仅需执行一次）
-   ```
-
-2. 作用：Claude Code 会获得代码库的深度架构视图，避免遗漏依赖和破坏调用链。
-
-#### rtk
-
-1. 初始化 rtk（仅需执行一次）：
-   ```bash
-   rtk init -g                     # 为 Claude Code / Copilot 配置
-   rtk init -g --gemini            # 为 Gemini CLI 配置
-   rtk init -g --codex             # 为 Codex (OpenAI) 配置
-   ```
-
-2. 重新启动 AI 工具，然后测试：
-   ```bash
-   git status  # 会自动重写为 rtk git status
-   ```
-
-3. 作用：减少 LLM token 消耗 60-90%，大幅提高代码处理效率。
-
-#### graphify
-
-1. 安装技能：
-   ```bash
-   graphify install --platform claude
-   ```
-
-2. 作用：提供代码可视化和分析功能，帮助更好地理解代码结构。
+有关工具的详细使用指南，请参考 [Claude Addons 使用手册](USER_MANUAL.zh-CN.md)，其中包含了 code-review-graph、GitNexus、rtk 和 graphify 等工具的完整安装步骤、使用方法、核心功能和最佳实践。
 
 ### 技能使用指南
 
-#### gstack
-
-- 安装后会自动配置到 Claude 的技能目录
-- 可以在 Claude Code 中激活 gstack 模式，获得更强大的代码分析能力
-
-#### superpowers
-
-- 包含多个专业技能，如前端开发、后端开发、数据分析等
-- 安装后会自动复制到 Claude 的技能目录
-- 可以在 Claude Code 中激活相应的技能模式
-
-#### compound-engineering
-
-- 提供工程化相关的技能和代理
-- 安装后会自动复制到 Claude 的技能和代理目录
+有关技能的详细使用指南，请参考 [Claude Addons 使用手册](USER_MANUAL.zh-CN.md)，其中包含了 gstack、superpowers 和 compound-engineering 等技能的完整安装步骤、使用方法、核心功能和最佳实践。
 
 ## 使用技巧
 
