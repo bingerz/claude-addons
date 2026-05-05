@@ -4,6 +4,8 @@
 KEEP_REPOS=false
 # Default value for UNINSTALL
 UNINSTALL=false
+# Default value for SKIP_CONFIRM
+SKIP_CONFIRM=false
 
 # Process command line arguments
 while [ $# -gt 0 ]; do
@@ -14,6 +16,10 @@ while [ $# -gt 0 ]; do
             ;;
         --uninstall)
             UNINSTALL=true
+            shift
+            ;;
+        --yes|--skip-confirm|-y)
+            SKIP_CONFIRM=true
             shift
             ;;
         *)
@@ -293,13 +299,52 @@ fi
 
 # Global variable: whether to use proxy link
 USE_PROXY=false
-# Tool installation function (with version check)
+
+# Confirm installation for a specific project
+confirm_project_install() {
+    local project_name="$1"
+    local project_desc="$2"
+    local project_type="$3"
+    local project_components="$4"
+    
+    if [ "$SKIP_CONFIRM" = "true" ]; then
+        return 0
+    fi
+    
+    echo ""
+    echo "Install $project_name? ($project_type)"
+    echo "  $project_components"
+    read -p "  [Y] Install  [N] Skip  [A] Skip all: " -n 1 -r
+    echo ""
+    
+    case $REPLY in
+        [Yy])
+            echo "✓ Installing $project_name..."
+            return 0
+            ;;
+        [Nn])
+            echo "- Skipping $project_name"
+            return 1
+            ;;
+        [Aa])
+            echo "- Skipping all remaining projects"
+            exit 0
+            ;;
+        *)
+            echo "- Invalid input, skipping $project_name"
+            return 1
+            ;;
+    esac
+}
+
+# Tool installation function (with version check and timeout)
 install_tool() {
     local tool_name="$1"
     local check_command="$2"
     local install_command="$3"
     local version_command="$4"
     local version_pattern="$5"
+    local timeout=120  # 2 minutes timeout
 
     echo "Installing $tool_name tool..."
     if eval "$check_command" &> /dev/null; then
@@ -320,13 +365,17 @@ install_tool() {
             echo "✓ $tool_name tool is already installed"
         else
             echo "$tool_name version check failed, reinstalling..."
-            eval "$install_command"
+            timeout $timeout eval "$install_command"
             echo "✓ $tool_name tool installation completed"
         fi
     else
         echo "$tool_name is not installed, starting installation..."
-        eval "$install_command"
-        echo "✓ $tool_name tool installation completed"
+        timeout $timeout eval "$install_command"
+        if [ $? -eq 124 ]; then
+            echo "✗ $tool_name installation timed out, please install manually"
+        else
+            echo "✓ $tool_name tool installation completed"
+        fi
     fi
     echo ""
 }
@@ -537,43 +586,165 @@ echo "Claude Code Installation and Update Script"
 echo "======================================"
 echo ""
 
-echo "======================================"
-echo "Stage 1: Git Repository Update/Clone"
-echo "======================================"
+# ======================================
+# SECTION 1: PROJECT INTRODUCTION
+# ======================================
+echo "Claude Addons Installer"
+echo "----------------------"
+echo "Enhance Claude Code with tools, skills, agents and plugins."
+echo ""
+echo "Projects (10):"
+echo "  [1] agency-agents           - 10+ Agents"
+echo "  [2] claude-plugins-official - Plugin Marketplace"
+echo "  [3] gstack                  - 15+ Skills"
+echo "  [4] superpowers             - 7 Skills"
+echo "  [5] compound-engineering    - 5 Skills + Agents"
+echo "  [6] graphify                - Knowledge graph tool"
+echo "  [7] code-review-graph       - Code review graph"
+echo "  [8] GitNexus               - Code intelligence"
+echo "  [9] rtk                    - Token optimizer"
+echo " [10] everything-claude-code  - Complete Suite"
+echo ""
+echo "Requires: Python 3.7+, Node.js 16+, Git 2.0+, Claude Code"
 echo ""
 
-# Process each Git repository
-process_repo "agency-agents" "AGENTS_REPO"
-process_repo "claude-plugins-official" "PLUGINS_REPO"
-process_repo "gstack" "GSTACK_REPO"
-process_repo "superpowers" "SUPERPOWERS_REPO"
-process_repo "compound-engineering-plugin" "COMPOUND_ENGINEERING_REPO"
-process_repo "graphify" "GRAPHIFY_REPO"
-process_repo "code-review-graph" "CODE_REVIEW_GRAPH_REPO"
-process_repo "GitNexus" "GITNEXUS_REPO"
-process_repo "rtk" "RTK_REPO"
-process_repo "everything-claude-code" "EVERYTHING_CLAUDE_CODE_REPO"
+# Track installed and skipped projects
+INSTALLED_PROJECTS=""
+SKIPPED_PROJECTS=""
 
+# Process each Git repository with confirmation
+if confirm_project_install "agency-agents" "" "Agents" "10+ professional agents"; then
+    process_repo "agency-agents" "AGENTS_REPO"
+    INSTALLED_PROJECTS="$INSTALLED_PROJECTS agency-agents"
+else
+    SKIPPED_PROJECTS="$SKIPPED_PROJECTS agency-agents"
+fi
+
+if confirm_project_install "claude-plugins-official" "" "Plugin Marketplace" "Official plugins repository"; then
+    process_repo "claude-plugins-official" "PLUGINS_REPO"
+    INSTALLED_PROJECTS="$INSTALLED_PROJECTS claude-plugins-official"
+else
+    SKIPPED_PROJECTS="$SKIPPED_PROJECTS claude-plugins-official"
+fi
+
+if confirm_project_install "gstack" "" "Skills" "15+ skills"; then
+    process_repo "gstack" "GSTACK_REPO"
+    INSTALLED_PROJECTS="$INSTALLED_PROJECTS gstack"
+else
+    SKIPPED_PROJECTS="$SKIPPED_PROJECTS gstack"
+fi
+
+if confirm_project_install "superpowers" "" "Skills" "7 skills (TDD, brainstorming)"; then
+    process_repo "superpowers" "SUPERPOWERS_REPO"
+    INSTALLED_PROJECTS="$INSTALLED_PROJECTS superpowers"
+else
+    SKIPPED_PROJECTS="$SKIPPED_PROJECTS superpowers"
+fi
+
+if confirm_project_install "compound-engineering-plugin" "" "Skills + Agents" "5 Skills + Agents"; then
+    process_repo "compound-engineering-plugin" "COMPOUND_ENGINEERING_REPO"
+    INSTALLED_PROJECTS="$INSTALLED_PROJECTS compound-engineering-plugin"
+else
+    SKIPPED_PROJECTS="$SKIPPED_PROJECTS compound-engineering-plugin"
+fi
+
+if confirm_project_install "graphify" "" "Tool" "Knowledge graph builder"; then
+    process_repo "graphify" "GRAPHIFY_REPO"
+    INSTALLED_PROJECTS="$INSTALLED_PROJECTS graphify"
+else
+    SKIPPED_PROJECTS="$SKIPPED_PROJECTS graphify"
+fi
+
+if confirm_project_install "code-review-graph" "" "Tool" "Code review graph"; then
+    process_repo "code-review-graph" "CODE_REVIEW_GRAPH_REPO"
+    INSTALLED_PROJECTS="$INSTALLED_PROJECTS code-review-graph"
+else
+    SKIPPED_PROJECTS="$SKIPPED_PROJECTS code-review-graph"
+fi
+
+if confirm_project_install "GitNexus" "" "Tool" "Code intelligence engine"; then
+    process_repo "GitNexus" "GITNEXUS_REPO"
+    INSTALLED_PROJECTS="$INSTALLED_PROJECTS GitNexus"
+else
+    SKIPPED_PROJECTS="$SKIPPED_PROJECTS GitNexus"
+fi
+
+if confirm_project_install "rtk" "" "Tool" "Token optimizer (60-90% reduction)"; then
+    process_repo "rtk" "RTK_REPO"
+    INSTALLED_PROJECTS="$INSTALLED_PROJECTS rtk"
+else
+    SKIPPED_PROJECTS="$SKIPPED_PROJECTS rtk"
+fi
+
+if confirm_project_install "everything-claude-code" "" "Suite" "Agents+Skills+Commands+Rules"; then
+    process_repo "everything-claude-code" "EVERYTHING_CLAUDE_CODE_REPO"
+    INSTALLED_PROJECTS="$INSTALLED_PROJECTS everything-claude-code"
+else
+    SKIPPED_PROJECTS="$SKIPPED_PROJECTS everything-claude-code"
+fi
+
+# Check if a project was installed
+project_installed() {
+    echo "$INSTALLED_PROJECTS" | grep -q "$1"
+    return $?
+}
+
+# ======================================
+# STAGE 2: TOOL INSTALLATION
+# ======================================
 echo "======================================"
 echo "Stage 2: Tool Installation"
 echo "======================================"
 echo ""
 
-# Install each tool
-install_tool "graphify" "command -v graphify" "cd graphify && pip install . && cd \"$SCRIPT_DIR\"" "graphify --version" ""
-install_tool "code-review-graph" "command -v code-review-graph" "cd code-review-graph && pip install . && cd \"$SCRIPT_DIR\"" "code-review-graph --version" ""
-install_tool "GitNexus" "command -v npx && npx gitnexus --version 2>&1 | grep -q 'version'" "npm install -g gitnexus" "npx gitnexus --version" "version.*[0-9]+\\.[0-9]+\\.[0-9]+"
+# Install each tool only if its project was selected
+if project_installed "graphify"; then
+    install_tool "graphify" "command -v graphify" "cd graphify && pip install . && cd \"$SCRIPT_DIR\"" "graphify --version" ""
+else
+    echo "- Skipping graphify tool (project not selected)"
+fi
+
+if project_installed "code-review-graph"; then
+    install_tool "code-review-graph" "command -v code-review-graph" "cd code-review-graph && pip install . && cd \"$SCRIPT_DIR\"" "code-review-graph --version" ""
+else
+    echo "- Skipping code-review-graph tool (project not selected)"
+fi
+
+if project_installed "GitNexus"; then
+    install_tool "GitNexus" "npm list -g gitnexus &> /dev/null" "npm install -g gitnexus" "gitnexus --version" "version.*[0-9]+\\.[0-9]+\\.[0-9]+"
+else
+    echo "- Skipping GitNexus tool (project not selected)"
+fi
 
 # Install rtk tool
-echo "Installing rtk tool..."
-if command -v rtk &> /dev/null; then
-    echo "rtk is already installed, checking version..."
-    current_version=$(rtk --version 2>&1 | grep -E 'rtk [0-9]+\.[0-9]+\.[0-9]+' | awk '{print $2}')
-    if [ -n "$current_version" ]; then
-        echo "Current rtk version: $current_version"
-        echo "✓ rtk tool is already installed"
+if project_installed "rtk"; then
+    echo "Installing rtk tool..."
+    if command -v rtk &> /dev/null; then
+        echo "rtk is already installed, checking version..."
+        current_version=$(rtk --version 2>&1 | grep -E 'rtk [0-9]+\.[0-9]+\.[0-9]+' | awk '{print $2}')
+        if [ -n "$current_version" ]; then
+            echo "Current rtk version: $current_version"
+            echo "✓ rtk tool is already installed"
+        else
+            echo "rtk version check failed, reinstalling..."
+            if command -v brew &> /dev/null; then
+                echo "Installing rtk using Homebrew..."
+                brew install rtk
+                if [ $? -eq 0 ]; then
+                    echo "✓ rtk tool installation completed"
+                else
+                    echo "Homebrew installation failed, trying quick installation..."
+                    curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
+                    echo "✓ rtk tool installation completed"
+                fi
+            else
+                echo "Homebrew not available, using quick installation..."
+                curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
+                echo "✓ rtk tool installation completed"
+            fi
+        fi
     else
-        echo "rtk version check failed, reinstalling..."
+        echo "rtk is not installed, starting installation..."
         if command -v brew &> /dev/null; then
             echo "Installing rtk using Homebrew..."
             brew install rtk
@@ -591,183 +762,274 @@ if command -v rtk &> /dev/null; then
         fi
     fi
 else
-    echo "rtk is not installed, starting installation..."
-    if command -v brew &> /dev/null; then
-        echo "Installing rtk using Homebrew..."
-        brew install rtk
-        if [ $? -eq 0 ]; then
-            echo "✓ rtk tool installation completed"
-        else
-            echo "Homebrew installation failed, trying quick installation..."
-            curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
-            echo "✓ rtk tool installation completed"
-        fi
-    else
-        echo "Homebrew not available, using quick installation..."
-        curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
-        echo "✓ rtk tool installation completed"
-    fi
+    echo "- Skipping rtk tool (project not selected)"
 fi
 echo ""
 
+# ======================================
+# STAGE 3: SKILLS INSTALLATION
+# ======================================
 echo "======================================"
 echo "Stage 3: Skills Installation"
 echo "======================================"
 echo ""
 
 # Install gstack skill
-install_skill "gstack" "gstack" "$HOME/.claude/skills/gstack"
-# Enter gstack directory and execute setup
-cd "$HOME/.claude/skills/gstack"
-./setup --host claude
-cd "$SCRIPT_DIR"
+if project_installed "gstack"; then
+    install_skill "gstack" "gstack" "$HOME/.claude/skills/gstack"
+    # Enter gstack directory and execute setup
+    cd "$HOME/.claude/skills/gstack"
+    ./setup --host claude
+    cd "$SCRIPT_DIR"
+else
+    echo "- Skipping gstack skills (project not selected)"
+fi
 
 # Install superpowers skills
-echo "Installing superpowers skills..."
-mkdir -p "$HOME/.claude/skills"
-for skill_dir in superpowers/skills/*; do
-    if [ -d "$skill_dir" ]; then
-        skill_name=$(basename "$skill_dir")
-        echo "  - Copying skill: $skill_name"
-        rm -rf "$HOME/.claude/skills/$skill_name"
-        cp -r "$skill_dir" "$HOME/.claude/skills/"
-    fi
-done
-echo "✓ superpowers skills installation completed"
-echo ""
+if project_installed "superpowers"; then
+    echo "Installing superpowers skills..."
+    mkdir -p "$HOME/.claude/skills"
+    for skill_dir in superpowers/skills/*; do
+        if [ -d "$skill_dir" ]; then
+            skill_name=$(basename "$skill_dir")
+            echo "  - Copying skill: $skill_name"
+            rm -rf "$HOME/.claude/skills/$skill_name"
+            cp -r "$skill_dir" "$HOME/.claude/skills/"
+        fi
+    done
+    echo "✓ superpowers skills installation completed"
+    echo ""
+else
+    echo "- Skipping superpowers skills (project not selected)"
+    echo ""
+fi
 
 # Install compound-engineering skills
-echo "Installing compound-engineering skills..."
-mkdir -p "$HOME/.claude/skills"
-for skill_dir in compound-engineering-plugin/plugins/compound-engineering/skills/*; do
-    if [ -d "$skill_dir" ]; then
-        skill_name=$(basename "$skill_dir")
-        echo "  - Copying skill: $skill_name"
-        rm -rf "$HOME/.claude/skills/$skill_name"
-        cp -r "$skill_dir" "$HOME/.claude/skills/"
-    fi
-done
-echo "✓ compound-engineering skills installation completed"
-echo ""
+if project_installed "compound-engineering-plugin"; then
+    echo "Installing compound-engineering skills..."
+    mkdir -p "$HOME/.claude/skills"
+    for skill_dir in compound-engineering-plugin/plugins/compound-engineering/skills/*; do
+        if [ -d "$skill_dir" ]; then
+            skill_name=$(basename "$skill_dir")
+            echo "  - Copying skill: $skill_name"
+            rm -rf "$HOME/.claude/skills/$skill_name"
+            cp -r "$skill_dir" "$HOME/.claude/skills/"
+        fi
+    done
+    echo "✓ compound-engineering skills installation completed"
+    echo ""
+else
+    echo "- Skipping compound-engineering skills (project not selected)"
+    echo ""
+fi
 
 # Install graphify skill
-echo "Installing graphify skill..."
-graphify install --platform claude
-echo "✓ graphify skill installation completed"
-echo ""
+if project_installed "graphify"; then
+    echo "Installing graphify skill..."
+    graphify install --platform claude
+    echo "✓ graphify skill installation completed"
+    echo ""
+else
+    echo "- Skipping graphify skill (project not selected)"
+    echo ""
+fi
 
-echo "Installing everything-claude-code skills..."
-mkdir -p "$HOME/.claude/skills"
-for skill_dir in everything-claude-code/skills/*; do
-    if [ -d "$skill_dir" ]; then
-        skill_name=$(basename "$skill_dir")
-        echo "  - Copying skill: $skill_name"
-        rm -rf "$HOME/.claude/skills/$skill_name"
-        cp -r "$skill_dir" "$HOME/.claude/skills/"
-    fi
-done
-echo "✓ everything-claude-code skills installation completed"
+if project_installed "everything-claude-code"; then
+    echo "Installing everything-claude-code skills..."
+    mkdir -p "$HOME/.claude/skills"
+    for skill_dir in everything-claude-code/skills/*; do
+        if [ -d "$skill_dir" ]; then
+            skill_name=$(basename "$skill_dir")
+            echo "  - Copying skill: $skill_name"
+            rm -rf "$HOME/.claude/skills/$skill_name"
+            cp -r "$skill_dir" "$HOME/.claude/skills/"
+        fi
+    done
+    echo "✓ everything-claude-code skills installation completed"
+else
+    echo "- Skipping everything-claude-code skills (project not selected)"
+fi
 
+# ======================================
+# STAGE 4: AGENTS INSTALLATION
+# ======================================
 echo ""
 echo "======================================"
 echo "Stage 4: Agents Installation"
 echo "======================================"
 echo ""
 
-echo "Copying Agents to Claude configuration directory..."
-mkdir -p "$HOME/.claude/agents"
-cp -r agency-agents/* "$HOME/.claude/agents/"
-echo "✓ Agents installation completed"
-echo ""
+if project_installed "agency-agents"; then
+    echo "Copying Agents to Claude configuration directory..."
+    mkdir -p "$HOME/.claude/agents"
+    cp -r agency-agents/* "$HOME/.claude/agents/"
+    echo "✓ Agents installation completed"
+    echo ""
+else
+    echo "- Skipping agency-agents (project not selected)"
+    echo ""
+fi
 
-echo "Copying compound-engineering agents to Claude configuration directory..."
-mkdir -p "$HOME/.claude/agents"
-cp -r compound-engineering-plugin/plugins/compound-engineering/agents/* "$HOME/.claude/agents/"
-echo "✓ compound-engineering agents installation completed"
-echo ""
+if project_installed "compound-engineering-plugin"; then
+    echo "Copying compound-engineering agents to Claude configuration directory..."
+    mkdir -p "$HOME/.claude/agents"
+    cp -r compound-engineering-plugin/plugins/compound-engineering/agents/* "$HOME/.claude/agents/"
+    echo "✓ compound-engineering agents installation completed"
+    echo ""
+else
+    echo "- Skipping compound-engineering agents (project not selected)"
+    echo ""
+fi
 
-echo "Copying everything-claude-code agents to Claude configuration directory..."
-mkdir -p "$HOME/.claude/agents"
-cp -r everything-claude-code/agents/* "$HOME/.claude/agents/" 2>/dev/null || true
-echo "✓ everything-claude-code agents installation completed"
-echo ""
+if project_installed "everything-claude-code"; then
+    echo "Copying everything-claude-code agents to Claude configuration directory..."
+    mkdir -p "$HOME/.claude/agents"
+    cp -r everything-claude-code/agents/* "$HOME/.claude/agents/" 2>/dev/null || true
+    echo "✓ everything-claude-code agents installation completed"
+    echo ""
+else
+    echo "- Skipping everything-claude-code agents (project not selected)"
+    echo ""
+fi
 
+# ======================================
+# STAGE 5: PLUGINS INSTALLATION
+# ======================================
 echo "======================================"
 echo "Stage 5: Plugins Installation"
 echo "======================================"
 echo ""
 
-echo "Copying Plugins to Claude configuration directory..."
-mkdir -p "$HOME/.claude/plugins/marketplaces"
-cp -r claude-plugins-official/* "$HOME/.claude/plugins/marketplaces/claude-plugins-official"
-echo "✓ Plugins installation completed"
-echo ""
+if project_installed "claude-plugins-official"; then
+    echo "Copying Plugins to Claude configuration directory..."
+    mkdir -p "$HOME/.claude/plugins/marketplaces"
+    cp -r claude-plugins-official/* "$HOME/.claude/plugins/marketplaces/claude-plugins-official"
+    echo "✓ Plugins installation completed"
+    echo ""
+else
+    echo "- Skipping claude-plugins-official (project not selected)"
+    echo ""
+fi
 
+# ======================================
+# STAGE 6: CLAUDE PLUGINS INSTALLATION
+# ======================================
 echo "======================================"
 echo "Stage 6: Claude Plugins Installation"
 echo "======================================"
 echo ""
 
-plugins=(
-    "ralph-loop"
-    "code-review"
-    "code-simplifier"
-    "security-guidance"
-    "feature-dev"
-    "rust-analyzer-lsp"
-    "pyright-lsp"
-)
+if project_installed "claude-plugins-official"; then
+    plugins=(
+        "ralph-loop"
+        "code-review"
+        "code-simplifier"
+        "security-guidance"
+        "feature-dev"
+        "rust-analyzer-lsp"
+        "pyright-lsp"
+    )
 
-echo "Installing Claude plugins..."
-for plugin in "${plugins[@]}"; do
-    echo "  - Installing plugin: $plugin"
-    if claude plugin install "$plugin" 2>&1; then
-        echo "    ✓ Installation successful"
-    else
-        echo "    ✗ Installation failed (plugin may not exist or marketplace not configured)"
-    fi
-done
-echo "✓ Claude plugins installation completed"
-echo ""
+    echo "Installing Claude plugins..."
+    for plugin in "${plugins[@]}"; do
+        echo "  - Installing plugin: $plugin"
+        if claude plugin install "$plugin" 2>&1; then
+            echo "    ✓ Installation successful"
+        else
+            echo "    ✗ Installation failed (plugin may not exist or marketplace not configured)"
+        fi
+    done
+    echo "✓ Claude plugins installation completed"
+    echo ""
+else
+    echo "- Skipping Claude plugins installation (claude-plugins-official not selected)"
+    echo ""
+fi
 
+# ======================================
+# STAGE 7: RULES INSTALLATION
+# ======================================
 echo "======================================"
 echo "Stage 7: Rules Installation"
 echo "======================================"
 echo ""
-echo "Installing everything-claude-code rules..."
-mkdir -p "$HOME/.claude/rules"
-cp -r everything-claude-code/rules/* "$HOME/.claude/rules/" 2>/dev/null || true
-echo "✓ everything-claude-code rules installation completed"
+if project_installed "everything-claude-code"; then
+    echo "Installing everything-claude-code rules..."
+    mkdir -p "$HOME/.claude/rules"
+    cp -r everything-claude-code/rules/* "$HOME/.claude/rules/" 2>/dev/null || true
+    echo "✓ everything-claude-code rules installation completed"
+else
+    echo "- Skipping everything-claude-code rules (project not selected)"
+fi
 echo ""
 
+# ======================================
+# STAGE 8: COMMANDS INSTALLATION
+# ======================================
 echo "======================================"
 echo "Stage 8: Commands Installation"
 echo "======================================"
 echo ""
-echo "Installing everything-claude-code commands..."
-mkdir -p "$HOME/.claude/commands"
-cp -r everything-claude-code/commands/* "$HOME/.claude/commands/" 2>/dev/null || true
-echo "✓ everything-claude-code commands installation completed"
+if project_installed "everything-claude-code"; then
+    echo "Installing everything-claude-code commands..."
+    mkdir -p "$HOME/.claude/commands"
+    cp -r everything-claude-code/commands/* "$HOME/.claude/commands/" 2>/dev/null || true
+    echo "✓ everything-claude-code commands installation completed"
+else
+    echo "- Skipping everything-claude-code commands (project not selected)"
+fi
 
+# ======================================
+# INSTALLATION COMPLETED
+# ======================================
 echo "======================================"
-echo "✓ All installation steps completed!"
+echo "✓ Installation completed!"
 echo "======================================"
+echo ""
+
+# Show installation summary
+echo "Installation Summary:"
+echo "---------------------"
+echo "Installed projects:"
+if [ -n "$INSTALLED_PROJECTS" ]; then
+    for project in $INSTALLED_PROJECTS; do
+        echo "  ✓ $project"
+    done
+else
+    echo "  (none)"
+fi
+
+echo ""
+echo "Skipped projects:"
+if [ -n "$SKIPPED_PROJECTS" ]; then
+    for project in $SKIPPED_PROJECTS; do
+        echo "  - $project"
+    done
+else
+    echo "  (none)"
+fi
 echo ""
 
 # Clean up git repositories (if user chooses not to keep)
 if [ "$KEEP_REPOS" = "false" ]; then
     echo "======================================"
-echo "Cleaning up temporary files"
-echo "======================================"
-echo ""
-echo "Deleting git repositories..."
-    rm -rf agency-agents claude-plugins-official gstack superpowers compound-engineering-plugin graphify code-review-graph GitNexus rtk everything-claude-code
-echo "✓ Cleanup completed"
-echo ""
-echo "Note: If you need to keep git repositories for future updates, please run the script with --keep-repos parameter."
-echo ""
+    echo "Cleaning up temporary files"
+    echo "======================================"
+    echo ""
+    echo "Deleting git repositories..."
+    for project in $INSTALLED_PROJECTS; do
+        rm -rf "$project"
+        echo "  - Deleted: $project"
+    done
+    echo "✓ Cleanup completed"
+    echo ""
+    echo "Note: If you need to keep git repositories for future updates, please run the script with --keep-repos parameter."
+    echo ""
 fi
 
+# ======================================
+# USAGE GUIDE
+# ======================================
 echo "======================================"
 echo "Usage Guide"
 echo "======================================"
