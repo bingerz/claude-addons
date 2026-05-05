@@ -63,6 +63,22 @@ curl -fsSL https://raw.githubusercontent.com/bingerz/claude-addons/refs/heads/ma
   ./install-claude-addons.sh --keep-repos
   ```
 
+- **卸载模式**（卸载所有已安装的 Claude Addons）：
+  ```bash
+  ./install-claude-addons.sh --uninstall
+  ```
+
+  卸载功能会移除：
+  - 所有已安装的工具（graphify、code-review-graph、GitNexus、rtk）
+  - 所有已安装的技能
+  - 所有已安装的代理
+  - 所有已安装的规则
+  - 所有已安装的命令
+  - 所有已安装的 Claude 插件
+  - 所有插件市场配置
+
+  注意：一些配置文件（如 hooks、MCP 配置）需要手动清理。
+
 ### 工具使用指南
 
 有关工具的详细使用指南，请参考 [Claude Addons 使用手册](USER_MANUAL.zh-CN.md)，其中包含了 code-review-graph、GitNexus、rtk 和 graphify 等工具的完整安装步骤、使用方法、核心功能和最佳实践。

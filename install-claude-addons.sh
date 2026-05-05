@@ -2,6 +2,8 @@
 
 # Default value for KEEP_REPOS
 KEEP_REPOS=false
+# Default value for UNINSTALL
+UNINSTALL=false
 
 # Process command line arguments
 while [ $# -gt 0 ]; do
@@ -10,12 +12,284 @@ while [ $# -gt 0 ]; do
             KEEP_REPOS=true
             shift
             ;;
+        --uninstall)
+            UNINSTALL=true
+            shift
+            ;;
         *)
             echo "Unknown argument: $1"
             shift
             ;;
     esac
 done
+
+# Check if uninstall mode is enabled
+if [ "$UNINSTALL" = "true" ]; then
+    echo "======================================"
+    echo "Claude Addons Uninstall Script"
+    echo "======================================"
+    echo ""
+
+    read -p "Are you sure you want to uninstall all Claude Addons? (y/N) " -n 1 -r
+    echo ""
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "Uninstall cancelled."
+        exit 0
+    fi
+
+    echo ""
+    echo "======================================"
+    echo "Stage 1: Removing Tools"
+    echo "======================================"
+    echo ""
+
+    # Remove graphify
+    echo "Removing graphify..."
+    if command -v graphify &> /dev/null; then
+        pip uninstall -y graphifyy 2>/dev/null || pip uninstall -y graphify 2>/dev/null || true
+        echo "✓ graphify removed"
+    else
+        echo "- graphify is not installed"
+    fi
+
+    # Remove code-review-graph
+    echo "Removing code-review-graph..."
+    if command -v code-review-graph &> /dev/null; then
+        pip uninstall -y code-review-graph 2>/dev/null || true
+        echo "✓ code-review-graph removed"
+    else
+        echo "- code-review-graph is not installed"
+    fi
+
+    # Remove GitNexus
+    echo "Removing GitNexus..."
+    if command -v gitnexus &> /dev/null || npm list -g gitnexus &> /dev/null; then
+        npm uninstall -g gitnexus 2>/dev/null || true
+        echo "✓ GitNexus removed"
+    else
+        echo "- GitNexus is not installed"
+    fi
+
+    # Remove rtk
+    echo "Removing rtk..."
+    if command -v rtk &> /dev/null; then
+        if command -v brew &> /dev/null; then
+            brew uninstall rtk 2>/dev/null || true
+        fi
+        npm uninstall -g rtk 2>/dev/null || true
+        rm -f /usr/local/bin/rtk 2>/dev/null || true
+        rm -f /usr/bin/rtk 2>/dev/null || true
+        echo "✓ rtk removed"
+    else
+        echo "- rtk is not installed"
+    fi
+
+    echo ""
+    echo "======================================"
+    echo "Stage 2: Removing Skills"
+    echo "======================================"
+    echo ""
+
+    echo "Removing skills..."
+    skills_to_remove=(
+        "gstack"
+        "coding-standards"
+        "backend-patterns"
+        "frontend-patterns"
+        "continuous-learning"
+        "continuous-learning-v2"
+        "iterative-retrieval"
+        "strategic-compact"
+        "tdd-workflow"
+        "security-review"
+        "eval-harness"
+        "verification-loop"
+        "golang-patterns"
+        "golang-testing"
+        "cpp-testing"
+        "compound-engineering"
+        "graphify"
+    )
+
+    for skill in "${skills_to_remove[@]}"; do
+        if [ -d "$HOME/.claude/skills/$skill" ]; then
+            rm -rf "$HOME/.claude/skills/$skill"
+            echo "  - Removed skill: $skill"
+        fi
+    done
+    echo "✓ Skills removed"
+
+    echo ""
+    echo "======================================"
+    echo "Stage 3: Removing Agents"
+    echo "======================================"
+    echo ""
+
+    echo "Removing agents..."
+    agents_to_remove=(
+        "planner"
+        "architect"
+        "tdd-guide"
+        "code-reviewer"
+        "security-reviewer"
+        "build-error-resolver"
+        "e2e-runner"
+        "refactor-cleaner"
+        "doc-updater"
+        "go-reviewer"
+        "go-build-resolver"
+        "frontend-developer"
+        "backend-architect"
+        "mobile-app-builder"
+        "ai-engineer"
+        "devops-automation-expert"
+        "rapid-prototyper"
+        "security-engineer"
+        "database-optimizer"
+        "technical-writer"
+    )
+
+    for agent in "${agents_to_remove[@]}"; do
+        if [ -f "$HOME/.claude/agents/$agent.md" ]; then
+            rm -f "$HOME/.claude/agents/$agent.md"
+            echo "  - Removed agent: $agent"
+        fi
+    done
+    echo "✓ Agents removed"
+
+    echo ""
+    echo "======================================"
+    echo "Stage 4: Removing Rules"
+    echo "======================================"
+    echo ""
+
+    echo "Removing rules..."
+    rules_to_remove=(
+        "security"
+        "coding-style"
+        "testing"
+        "git-workflow"
+        "agents"
+        "performance"
+    )
+
+    for rule in "${rules_to_remove[@]}"; do
+        if [ -f "$HOME/.claude/rules/$rule.md" ]; then
+            rm -f "$HOME/.claude/rules/$rule.md"
+            echo "  - Removed rule: $rule"
+        fi
+    done
+    echo "✓ Rules removed"
+
+    echo ""
+    echo "======================================"
+    echo "Stage 5: Removing Commands"
+    echo "======================================"
+    echo ""
+
+    echo "Removing commands..."
+    commands_to_remove=(
+        "tdd"
+        "plan"
+        "e2e"
+        "code-review"
+        "build-fix"
+        "refactor-clean"
+        "learn"
+        "checkpoint"
+        "verify"
+        "setup-pm"
+        "go-review"
+        "go-test"
+        "go-build"
+        "skill-create"
+        "instinct-status"
+        "instinct-import"
+        "instinct-export"
+        "evolve"
+    )
+
+    for cmd in "${commands_to_remove[@]}"; do
+        if [ -f "$HOME/.claude/commands/$cmd.md" ]; then
+            rm -f "$HOME/.claude/commands/$cmd.md"
+            echo "  - Removed command: $cmd"
+        fi
+    done
+    echo "✓ Commands removed"
+
+    echo ""
+    echo "======================================"
+    echo "Stage 6: Removing Plugins"
+    echo "======================================"
+    echo ""
+
+    echo "Removing Claude plugins..."
+    plugins_to_remove=(
+        "ralph-loop"
+        "code-review"
+        "code-simplifier"
+        "security-guidance"
+        "feature-dev"
+        "rust-analyzer-lsp"
+        "pyright-lsp"
+    )
+
+    for plugin in "${plugins_to_remove[@]}"; do
+        if claude plugin list 2>/dev/null | grep -q "$plugin"; then
+            claude plugin uninstall "$plugin" 2>/dev/null || true
+            echo "  - Removed plugin: $plugin"
+        fi
+    done
+    echo "✓ Claude plugins removed"
+
+    echo ""
+    echo "======================================"
+    echo "Stage 7: Removing Plugin Marketplaces"
+    echo "======================================"
+    echo ""
+
+    echo "Removing plugin marketplaces..."
+    if [ -d "$HOME/.claude/plugins/marketplaces" ]; then
+        rm -rf "$HOME/.claude/plugins/marketplaces/claude-plugins-official"
+        rm -rf "$HOME/.claude/plugins/marketplaces/everything-claude-code"
+        echo "✓ Plugin marketplaces removed"
+    fi
+
+    echo ""
+    echo "======================================"
+    echo "Stage 8: Cleaning Configuration Files"
+    echo "======================================"
+    echo ""
+
+    echo "Cleaning configuration files..."
+    # Remove hooks from settings.json if present
+    if [ -f "$HOME/.claude/settings.json" ]; then
+        echo "- settings.json preserved (manual cleanup required for hooks)"
+    fi
+
+    # Remove MCP configs
+    if [ -f "$HOME/.claude.json" ]; then
+        echo "- ~/.claude.json preserved (manual cleanup required for MCP configs)"
+    fi
+
+    echo "✓ Configuration files noted for manual cleanup"
+
+    echo ""
+    echo "======================================"
+    echo "✓ Uninstall completed!"
+    echo "======================================"
+    echo ""
+    echo "Note: Some configuration files may need manual cleanup:"
+    echo "  - ~/.claude/settings.json (hooks)"
+    echo "  - ~/.claude.json (MCP servers)"
+    echo "  - ~/.claude/package-manager.json"
+    echo ""
+    echo "If you want to completely remove all Claude configurations, run:"
+    echo "  rm -rf ~/.claude"
+    echo ""
+
+    exit 0
+fi
 
 # Global variable: whether to use proxy link
 USE_PROXY=false
@@ -26,7 +300,7 @@ install_tool() {
     local install_command="$3"
     local version_command="$4"
     local version_pattern="$5"
-    
+
     echo "Installing $tool_name tool..."
     if eval "$check_command" &> /dev/null; then
         echo "$tool_name is already installed, checking version..."
@@ -40,7 +314,7 @@ install_tool() {
         else
             current_version="Installed"
         fi
-        
+
         if [ -n "$current_version" ]; then
             echo "Current $tool_name version: $current_version"
             echo "✓ $tool_name tool is already installed"
@@ -61,7 +335,7 @@ install_tool() {
 process_repo() {
     local repo_name="$1"
     local repo_url_var="$2"
-    
+
     echo "Processing $repo_name project..."
     if [ "$KEEP_REPOS" = "true" ] && [ -d "$repo_name/.git" ]; then
         git_operation "pull" "" "$repo_name"
@@ -79,7 +353,7 @@ install_skill() {
     local skill_name="$1"
     local source_dir="$2"
     local target_dir="$3"
-    
+
     echo "Installing $skill_name..."
     mkdir -p "$target_dir"
     if [ -d "$source_dir" ]; then
@@ -117,7 +391,7 @@ USE_PROXY=false
 check_network() {
     local url="$1"
     local timeout=3
-    
+
     if curl -s --max-time $timeout "$url" > /dev/null; then
         return 0
     else
@@ -129,7 +403,7 @@ check_network() {
 get_repo_url() {
     local repo_url="$1"
     local proxy_url="$GITHUB_PROXY/$repo_url"
-    
+
     # Check if the original link is already an accelerated link
     if [[ "$repo_url" == *"$GITHUB_PROXY"* ]]; then
         echo "Using accelerated link: $repo_url" >&2
@@ -138,14 +412,14 @@ get_repo_url() {
         echo "$repo_url"
         return
     fi
-    
+
     # If already determined to use accelerated link, return directly
     if [ "$USE_PROXY" = "true" ]; then
         echo "Using accelerated link: $proxy_url" >&2
         echo "$proxy_url"
         return
     fi
-    
+
     # Test original link
     if check_network "$repo_url"; then
         echo "Using original link: $repo_url" >&2
@@ -165,10 +439,10 @@ git_operation() {
     local target_dir="$3"
     local max_retries=1  # Reduce retry times to save time
     local retry=0
-    
+
     while [ $retry -lt $max_retries ]; do
         echo "Attempting $operation ($((retry+1))/$max_retries)..."
-        
+
         if [ "$operation" = "clone" ]; then
             if git clone --depth 1 "$repo_url" "$target_dir" 2>&1; then
                 echo "✓ $operation successful"
@@ -186,23 +460,23 @@ git_operation() {
             fi
         elif [ "$operation" = "pull" ]; then
             cd "$target_dir"
-            
+
             # Get original remote
             local original_remote=$(git remote get-url origin)
-            
+
             # Check if original remote is already an accelerated link
             if [[ "$original_remote" == *"$GITHUB_PROXY"* ]]; then
                 local is_proxy_remote=true
             else
                 local is_proxy_remote=false
             fi
-            
+
             # If global setting to use accelerated link, switch directly
             if [ "$USE_PROXY" = "true" ] && [ "$is_proxy_remote" = "false" ]; then
                 echo "Using accelerated link for pull..."
                 local proxy_remote="$GITHUB_PROXY/$original_remote"
                 git remote set-url origin "$proxy_remote"
-                
+
                 if git pull 2>&1; then
                     # Restore original remote
                     git remote set-url origin "$original_remote"
@@ -210,26 +484,26 @@ git_operation() {
                     echo "✓ $operation successful (using accelerated link)"
                     return 0
                 fi
-                
+
                 # Restore original remote
                 git remote set-url origin "$original_remote"
                 cd "$SCRIPT_DIR"
                 return 1
             fi
-            
+
             # Try original pull
             if git pull 2>&1; then
                 cd "$SCRIPT_DIR"
                 echo "✓ $operation successful"
                 return 0
             fi
-            
+
             # If failed, try using accelerated link (if not already using)
             if [ "$is_proxy_remote" = "false" ]; then
                 echo "Trying accelerated link..."
                 local proxy_remote="$GITHUB_PROXY/$original_remote"
                 git remote set-url origin "$proxy_remote"
-                
+
                 if git pull 2>&1; then
                     # Restore original remote
                     git remote set-url origin "$original_remote"
@@ -239,21 +513,21 @@ git_operation() {
                     USE_PROXY=true
                     return 0
                 fi
-                
+
                 # Restore original remote
                 git remote set-url origin "$original_remote"
             fi
-            
+
             cd "$SCRIPT_DIR"
         fi
-        
+
         retry=$((retry+1))
         if [ $retry -lt $max_retries ]; then
             echo "Retrying..."
             sleep 2
         fi
     done
-    
+
     echo "✗ $operation failed"
     return 1
 }
@@ -381,7 +655,7 @@ echo "Installing graphify skill..."
 graphify install --platform claude
 echo "✓ graphify skill installation completed"
 echo ""
-echo ""
+
 echo "Installing everything-claude-code skills..."
 mkdir -p "$HOME/.claude/skills"
 for skill_dir in everything-claude-code/skills/*; do
@@ -394,6 +668,7 @@ for skill_dir in everything-claude-code/skills/*; do
 done
 echo "✓ everything-claude-code skills installation completed"
 
+echo ""
 echo "======================================"
 echo "Stage 4: Agents Installation"
 echo "======================================"
@@ -410,11 +685,12 @@ mkdir -p "$HOME/.claude/agents"
 cp -r compound-engineering-plugin/plugins/compound-engineering/agents/* "$HOME/.claude/agents/"
 echo "✓ compound-engineering agents installation completed"
 echo ""
-echo ""
+
 echo "Copying everything-claude-code agents to Claude configuration directory..."
 mkdir -p "$HOME/.claude/agents"
 cp -r everything-claude-code/agents/* "$HOME/.claude/agents/" 2>/dev/null || true
 echo "✓ everything-claude-code agents installation completed"
+echo ""
 
 echo "======================================"
 echo "Stage 5: Plugins Installation"
@@ -453,7 +729,7 @@ for plugin in "${plugins[@]}"; do
 done
 echo "✓ Claude plugins installation completed"
 echo ""
-echo ""
+
 echo "======================================"
 echo "Stage 7: Rules Installation"
 echo "======================================"
@@ -463,6 +739,7 @@ mkdir -p "$HOME/.claude/rules"
 cp -r everything-claude-code/rules/* "$HOME/.claude/rules/" 2>/dev/null || true
 echo "✓ everything-claude-code rules installation completed"
 echo ""
+
 echo "======================================"
 echo "Stage 8: Commands Installation"
 echo "======================================"
@@ -519,7 +796,7 @@ echo "2. Restart your AI tool, then test:"
 echo "   git status  # Will be automatically rewritten to rtk git status"
 echo ""
 echo "This can reduce LLM token consumption by 60-90%, greatly improving code processing efficiency."
-echo ""
+
 echo ""
 echo "======================================"
 echo "everything-claude-code Usage Guide:"
