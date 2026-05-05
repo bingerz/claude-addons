@@ -1271,6 +1271,158 @@ Hey Claude, activate [Agent Name] mode and help me [task description]
 Hey Claude, activate [agent name] mode and help me [task description]
 ```
 
+### 5.3 everything-claude-code
+
+#### 5.3.1 项目概述
+
+everything-claude-code 是一个完整的 Claude Code 配置集合，来自 Anthropic 黑客马拉松获胜者。经过 10 多个月构建真实产品的密集日常使用而演化，是一个生产级的代理、技能、钩子、命令、规则和 MCP 配置集合。
+
+#### 5.3.2 核心功能
+
+- **13 个专业代理**：planner、architect、tdd-guide、code-reviewer、security-reviewer、build-error-resolver、e2e-runner、refactor-cleaner、doc-updater、go-reviewer、go-build-resolver 等
+- **43 个技能**：coding-standards、backend-patterns、frontend-patterns、continuous-learning、iterative-retrieval、strategic-compact、tdd-workflow、security-review、eval-harness、verification-loop、golang-patterns、golang-testing、cpp-testing 等
+- **31 个命令**：/tdd、/plan、/e2e、/code-review、/build-fix、/refactor-clean、/learn、/checkpoint、/verify、/setup-pm、/go-review、/go-test、/go-build、/skill-create、/instinct-status、/instinct-import、/instinct-export、/evolve 等
+- **规则**：security.md、coding-style.md、testing.md、git-workflow.md、agents.md、performance.md
+- **钩子**：memory-persistence、strategic-compact 等
+- **脚本**：跨平台 Node.js 脚本，支持 npm、pnpm、yarn、bun
+- **MCP 配置**：GitHub、Supabase、Vercel、Railway 等
+
+#### 5.3.3 安装与配置
+
+**方法 1：作为插件安装（推荐）**
+
+```bash
+# 添加市场
+/plugin marketplace add affaan-m/everything-claude-code
+
+# 安装插件
+/plugin install everything-claude-code@everything-claude-code
+```
+
+**方法 2：手动安装**
+
+```bash
+# 克隆仓库
+git clone https://github.com/affaan-m/everything-claude-code.git
+
+# 复制代理
+cp everything-claude-code/agents/*.md ~/.claude/agents/
+
+# 复制规则
+cp everything-claude-code/rules/*.md ~/.claude/rules/
+
+# 复制命令
+cp everything-claude-code/commands/*.md ~/.claude/commands/
+
+# 复制技能
+cp -r everything-claude-code/skills/* ~/.claude/skills/
+```
+
+**重要：规则需要手动安装**
+
+Claude Code 插件系统不支持通过插件分发 rules，需要手动安装：
+
+```bash
+# 用户级规则（应用于所有项目）
+cp -r everything-claude-code/rules/* ~/.claude/rules/
+
+# 项目级规则（仅应用于当前项目）
+mkdir -p .claude/rules
+cp -r everything-claude-code/rules/* .claude/rules/
+```
+
+#### 5.3.4 快速开始
+
+1. **功能规划**：
+   ```
+   /plan "添加用户认证"
+   ```
+
+2. **TDD 工作流**：
+   ```
+   /tdd
+   ```
+
+3. **代码审查**：
+   ```
+   /code-review
+   ```
+
+4. **查看所有命令**：
+   ```
+   /help
+   ```
+
+#### 5.3.5 关键命令
+
+- **/plan**：实现规划
+- **/tdd**：测试驱动开发
+- **/e2e**：E2E 测试生成
+- **/code-review**：质量审查
+- **/build-fix**：修复构建错误
+- **/refactor-clean**：死代码移除
+- **/learn**：会话中提取模式
+- **/checkpoint**：保存验证状态
+- **/verify**：运行验证循环
+- **/go-review**：Go 代码审查
+- **/go-test**：Go TDD 工作流
+- **/go-build**：修复 Go 构建错误
+- **/skill-create**：从 git 历史生成技能
+- **/instinct-status**：查看学习的直觉
+- **/instinct-import**：导入直觉
+- **/instinct-export**：导出直觉
+- **/evolve**：将直觉聚类到技能中
+
+#### 5.3.6 持续学习 v2
+
+基于直觉的学习系统自动学习你的模式：
+
+- **/instinct-status**：显示带有置信度的学习直觉
+- **/instinct-import <file>**：从他人导入直觉
+- **/instinct-export**：导出你的直觉以供分享
+- **/evolve**：将相关直觉聚类到技能中
+
+#### 5.3.7 使用技巧
+
+1. **不要一次启用所有 MCP**：如果启用了太多工具，上下文窗口可能会缩小。建议配置 20-30 个 MCP，每个项目保持启用少于 10 个。
+
+2. **从适合你的开始**：这些配置适用于原作者的工作流，你应该从适合你的开始，为你的技术栈进行修改。
+
+3. **删除不使用的，添加自己的**：不断优化你的配置以适应你的需求。
+
+#### 5.3.8 在软件开发中的价值
+
+- **Token 优化**：模型选择、系统提示精简、后台进程
+- **内存持久化**：自动跨会话保存/加载上下文的钩子
+- **持续学习**：从会话中自动提取模式到可重用的技能
+- **验证循环**：检查点 vs 持续评估、评分器类型、pass@k 指标
+- **并行化**：Git worktrees、级联方法、何时扩展实例
+- **子代理编排**：上下文问题、迭代检索模式
+
+#### 5.3.9 跨平台支持
+
+此插件完全支持 Windows、macOS 和 Linux。所有钩子和脚本都已用 Node.js 重写，以实现最大的兼容性。
+
+**包管理器检测优先级**：
+1. 环境变量：CLAUDE_PACKAGE_MANAGER
+2. 项目配置：.claude/package-manager.json
+3. package.json：packageManager 字段
+4. 锁文件：package-lock.json、yarn.lock、pnpm-lock.yaml、bun.lockb
+5. 全局配置：~/.claude/package-manager.json
+6. 回退：第一个可用的包管理器
+
+设置首选包管理器：
+```bash
+# 通过环境变量
+export CLAUDE_PACKAGE_MANAGER=pnpm
+
+# 通过全局配置
+node scripts/setup-package-manager.js --global pnpm
+
+# 通过项目配置
+node scripts/setup-package-manager.js --project bun
+```
+
 ## 6. 插件使用指南
 
 ### 6.1 claude-plugins-official

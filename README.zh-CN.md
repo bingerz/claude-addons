@@ -22,6 +22,7 @@
 - **Plugins**：claude-plugins-official
 - **Skills**：gstack、superpowers/skills、compound-engineering-plugin/skills、graphify
 - **Tools**：graphify、code-review-graph、GitNexus、rtk
+- **完整配置**：everything-claude-code（13 个代理、43 个技能、31 个命令）
 
 ## 安装方法
 
