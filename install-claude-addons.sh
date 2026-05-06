@@ -300,6 +300,16 @@ fi
 # Global variable: whether to use proxy link
 USE_PROXY=false
 
+# Language detection function
+detect_lang() {
+    local lang="${LANG:-${LC_ALL:-${LANGUAGE:-}}}"
+    case "$lang" in
+        *zh*) echo "cn" ;;
+        *CN*) echo "cn" ;;
+        *) echo "en" ;;
+    esac
+}
+
 # Confirm installation for a specific project
 confirm_project_install() {
     local project_name="$1"
@@ -311,9 +321,9 @@ confirm_project_install() {
         return 0
     fi
     
+    show_project_details "$project_name"
+    
     echo ""
-    echo "Install $project_name? ($project_type)"
-    echo "  $project_components"
     read -p "  [Y] Install  [N] Skip  [A] Skip all: " -n 1 -r
     echo ""
     
@@ -333,6 +343,352 @@ confirm_project_install() {
         *)
             echo "- Invalid input, skipping $project_name"
             return 1
+            ;;
+    esac
+}
+
+# Show detailed project information
+show_project_details() {
+    local project_name="$1"
+    local lang=$(detect_lang)
+    
+    echo ""
+    echo "------------------------------------------------------------"
+    
+    case "$project_name" in
+        agency-agents)
+            if [ "$lang" = "cn" ]; then
+                echo "安装 agency-agents? (代理)"
+                echo "------------------------------------------------------------"
+                echo "类型: 专业代理集合"
+                echo ""
+                echo "包含的代理:"
+                echo "  • frontend-developer    - 前端开发专家"
+                echo "  • backend-architect     - 后端架构师"
+                echo "  • mobile-app-builder    - 移动应用开发"
+                echo "  • ai-engineer           - AI工程师"
+                echo "  • devops-automation-expert - DevOps自动化专家"
+                echo "  • rapid-prototyper      - 快速原型开发"
+                echo "  • security-engineer     - 安全工程师"
+                echo "  • code-reviewer         - 代码审查员"
+                echo "  • database-optimizer    - 数据库优化师"
+                echo "  • technical-writer      - 技术文档撰写"
+                echo ""
+                echo "功能说明: 提供10+专业领域的AI代理，覆盖前后端开发、移动应用、AI工程、DevOps等场景"
+            else
+                echo "Install agency-agents? (Agents)"
+                echo "------------------------------------------------------------"
+                echo "Type: Professional Agent Collection"
+                echo ""
+                echo "Included agents:"
+                echo "  • frontend-developer    - Frontend development expert"
+                echo "  • backend-architect     - Backend architect"
+                echo "  • mobile-app-builder    - Mobile app developer"
+                echo "  • ai-engineer           - AI engineer"
+                echo "  • devops-automation-expert - DevOps automation expert"
+                echo "  • rapid-prototyper      - Rapid prototyping"
+                echo "  • security-engineer     - Security engineer"
+                echo "  • code-reviewer         - Code reviewer"
+                echo "  • database-optimizer    - Database optimizer"
+                echo "  • technical-writer      - Technical writer"
+                echo ""
+                echo "Description: Provides 10+ professional AI agents covering frontend/backend dev, mobile apps, AI engineering, DevOps, etc."
+            fi
+            ;;
+        claude-plugins-official)
+            if [ "$lang" = "cn" ]; then
+                echo "安装 claude-plugins-official? (插件市场)"
+                echo "------------------------------------------------------------"
+                echo "类型: 官方插件仓库"
+                echo ""
+                echo "包含的插件:"
+                echo "  • ralph-loop           - 循环优化助手"
+                echo "  • code-review          - 代码审查工具"
+                echo "  • code-simplifier      - 代码简化器"
+                echo "  • security-guidance    - 安全性指导"
+                echo "  • feature-dev          - 功能开发助手"
+                echo "  • rust-analyzer-lsp    - Rust语言分析"
+                echo "  • pyright-lsp          - Python类型检查"
+                echo ""
+                echo "功能说明: 官方插件仓库，支持代码审查、安全性指导、LSP语言服务集成等"
+            else
+                echo "Install claude-plugins-official? (Plugin Marketplace)"
+                echo "------------------------------------------------------------"
+                echo "Type: Official Plugin Repository"
+                echo ""
+                echo "Included plugins:"
+                echo "  • ralph-loop           - Loop optimization assistant"
+                echo "  • code-review          - Code review tool"
+                echo "  • code-simplifier      - Code simplifier"
+                echo "  • security-guidance    - Security guidance"
+                echo "  • feature-dev          - Feature development assistant"
+                echo "  • rust-analyzer-lsp    - Rust language analysis"
+                echo "  • pyright-lsp          - Python type checking"
+                echo ""
+                echo "Description: Official plugin repository supporting code review, security guidance, LSP integration, etc."
+            fi
+            ;;
+        gstack)
+            if [ "$lang" = "cn" ]; then
+                echo "安装 gstack? (技能)"
+                echo "------------------------------------------------------------"
+                echo "类型: Google风格工作流技能"
+                echo ""
+                echo "包含的技能:"
+                echo "  • /office-hours        - 团队咨询时段安排"
+                echo "  • /plan-ceo-review     - CEO视角审查计划"
+                echo "  • /plan-design-review  - 设计方案审查"
+                echo "  • /plan-eng-review     - 工程实现审查"
+                echo "  • /design-consultation - 设计咨询"
+                echo "  • /design-shotgun      - 设计发散讨论"
+                echo "  • /design-html         - HTML设计实现"
+                echo "  • /review              - 代码审查"
+                echo "  • /investigate         - 问题调查分析"
+                echo "  • /devex-review        - 开发者体验审查"
+                echo "  • /qa                  - 质量保证测试"
+                echo "  • /qa-only             - 仅QA测试"
+                echo "  • /browse              - 代码浏览"
+                echo "  • /ship                - 部署发布"
+                echo "  • /land-and-deploy     - 完整部署流程"
+                echo ""
+                echo "功能说明: 15个专业技能，涵盖设计审查、代码审查、QA测试、部署发布等完整工作流"
+            else
+                echo "Install gstack? (Skills)"
+                echo "------------------------------------------------------------"
+                echo "Type: Google-style Workflow Skills"
+                echo ""
+                echo "Included skills:"
+                echo "  • /office-hours        - Team office hours scheduling"
+                echo "  • /plan-ceo-review     - CEO perspective review"
+                echo "  • /plan-design-review  - Design review"
+                echo "  • /plan-eng-review     - Engineering review"
+                echo "  • /design-consultation - Design consultation"
+                echo "  • /design-shotgun      - Design brainstorming"
+                echo "  • /design-html         - HTML design implementation"
+                echo "  • /review              - Code review"
+                echo "  • /investigate         - Issue investigation"
+                echo "  • /devex-review        - Developer experience review"
+                echo "  • /qa                  - QA testing"
+                echo "  • /qa-only             - QA only"
+                echo "  • /browse              - Code browsing"
+                echo "  • /ship                - Deployment"
+                echo "  • /land-and-deploy     - Full deployment workflow"
+                echo ""
+                echo "Description: 15 professional skills covering design review, code review, QA testing, deployment, etc."
+            fi
+            ;;
+        superpowers)
+            if [ "$lang" = "cn" ]; then
+                echo "安装 superpowers? (技能)"
+                echo "------------------------------------------------------------"
+                echo "类型: 进阶开发技能"
+                echo ""
+                echo "包含的技能:"
+                echo "  • brainstorming                - 头脑风暴"
+                echo "  • using-git-worktrees          - Git工作树使用"
+                echo "  • writing-plans                - 编写计划文档"
+                echo "  • subagent-driven-development  - 子代理驱动开发"
+                echo "  • test-driven-development      - 测试驱动开发"
+                echo "  • requesting-code-review       - 请求代码审查"
+                echo "  • finishing-a-development-branch - 完成开发分支"
+                echo ""
+                echo "功能说明: 7个进阶技能，支持TDD开发、分支管理、子代理协作等高级工作流"
+            else
+                echo "Install superpowers? (Skills)"
+                echo "------------------------------------------------------------"
+                echo "Type: Advanced Development Skills"
+                echo ""
+                echo "Included skills:"
+                echo "  • brainstorming                - Brainstorming"
+                echo "  • using-git-worktrees          - Git worktrees"
+                echo "  • writing-plans                - Plan writing"
+                echo "  • subagent-driven-development  - Subagent-driven development"
+                echo "  • test-driven-development      - Test-driven development"
+                echo "  • requesting-code-review       - Code review request"
+                echo "  • finishing-a-development-branch - Finish development branch"
+                echo ""
+                echo "Description: 7 advanced skills supporting TDD, branch management, subagent collaboration, etc."
+            fi
+            ;;
+        compound-engineering)
+            if [ "$lang" = "cn" ]; then
+                echo "安装 compound-engineering? (技能+代理)"
+                echo "------------------------------------------------------------"
+                echo "类型: 复合工程工作流"
+                echo ""
+                echo "包含的技能:"
+                echo "  • /ce:brainstorm      - 头脑风暴讨论"
+                echo "  • /ce:plan            - 项目规划"
+                echo "  • /ce:build           - 代码构建"
+                echo "  • /ce:review          - 代码审查"
+                echo "  • /ce:compound        - 复合工程集成"
+                echo ""
+                echo "功能说明: 复合工程工作流，支持头脑风暴、规划、构建、审查的完整闭环"
+            else
+                echo "Install compound-engineering? (Skills + Agents)"
+                echo "------------------------------------------------------------"
+                echo "Type: Compound Engineering Workflow"
+                echo ""
+                echo "Included skills:"
+                echo "  • /ce:brainstorm      - Brainstorming"
+                echo "  • /ce:plan            - Project planning"
+                echo "  • /ce:build           - Code building"
+                echo "  • /ce:review          - Code review"
+                echo "  • /ce:compound        - Compound engineering integration"
+                echo ""
+                echo "Description: Compound engineering workflow supporting brainstorming, planning, building, and review"
+            fi
+            ;;
+        graphify)
+            if [ "$lang" = "cn" ]; then
+                echo "安装 graphify? (工具+技能)"
+                echo "------------------------------------------------------------"
+                echo "类型: 知识图谱工具"
+                echo ""
+                echo "包含的组件:"
+                echo "  • 多模态知识图谱构建器"
+                echo "  • 图谱查询技能"
+                echo ""
+                echo "功能说明: 帮助构建代码库的知识图谱，理解代码结构和依赖关系，提升代码分析效率"
+            else
+                echo "Install graphify? (Tool + Skill)"
+                echo "------------------------------------------------------------"
+                echo "Type: Knowledge Graph Tool"
+                echo ""
+                echo "Included components:"
+                echo "  • Multi-modal knowledge graph builder"
+                echo "  • Graph query skills"
+                echo ""
+                echo "Description: Build knowledge graphs for codebases to understand structure and dependencies"
+            fi
+            ;;
+        code-review-graph)
+            if [ "$lang" = "cn" ]; then
+                echo "安装 code-review-graph? (工具)"
+                echo "------------------------------------------------------------"
+                echo "类型: 代码审查图谱工具"
+                echo ""
+                echo "包含的组件:"
+                echo "  • 本地知识图谱构建"
+                echo "  • 代码分析优化"
+                echo ""
+                echo "功能说明: 为代码审查构建本地知识图谱，大幅降低代码分析时的token消耗"
+            else
+                echo "Install code-review-graph? (Tool)"
+                echo "------------------------------------------------------------"
+                echo "Type: Code Review Graph Tool"
+                echo ""
+                echo "Included components:"
+                echo "  • Local knowledge graph building"
+                echo "  • Code analysis optimization"
+                echo ""
+                echo "Description: Build local knowledge graphs for code review, reducing token usage significantly"
+            fi
+            ;;
+        GitNexus)
+            if [ "$lang" = "cn" ]; then
+                echo "安装 GitNexus? (工具)"
+                echo "------------------------------------------------------------"
+                echo "类型: 代码智能引擎"
+                echo ""
+                echo "包含的组件:"
+                echo "  • 零服务器代码智能引擎"
+                echo "  • 代码库知识图谱"
+                echo ""
+                echo "功能说明: 从代码库自动构建知识图谱，帮助Claude深入理解代码架构和依赖关系"
+            else
+                echo "Install GitNexus? (Tool)"
+                echo "------------------------------------------------------------"
+                echo "Type: Code Intelligence Engine"
+                echo ""
+                echo "Included components:"
+                echo "  • Serverless code intelligence engine"
+                echo "  • Codebase knowledge graph"
+                echo ""
+                echo "Description: Automatically builds knowledge graphs from codebases to help Claude understand architecture"
+            fi
+            ;;
+        rtk)
+            if [ "$lang" = "cn" ]; then
+                echo "安装 rtk? (工具)"
+                echo "------------------------------------------------------------"
+                echo "类型: Token优化工具"
+                echo ""
+                echo "包含的组件:"
+                echo "  • 多平台支持 (Claude/Copilot/Gemini/Codex)"
+                echo "  • 智能上下文压缩"
+                echo ""
+                echo "功能说明: 减少LLM token使用60-90%，支持多种AI工具，大幅提升代码处理效率"
+            else
+                echo "Install rtk? (Tool)"
+                echo "------------------------------------------------------------"
+                echo "Type: Token Optimization Tool"
+                echo ""
+                echo "Included components:"
+                echo "  • Multi-platform support (Claude/Copilot/Gemini/Codex)"
+                echo "  • Smart context compression"
+                echo ""
+                echo "Description: Reduces LLM token consumption by 60-90%, supports multiple AI tools"
+            fi
+            ;;
+        everything-claude-code)
+            if [ "$lang" = "cn" ]; then
+                echo "安装 everything-claude-code? (完整套件)"
+                echo "------------------------------------------------------------"
+                echo "类型: 完整配置套件"
+                echo ""
+                echo "包含的组件:"
+                echo "  • 13个代理: planner, architect, tdd-guide, code-reviewer等"
+                echo "  • 43个技能: coding-standards, backend-patterns, frontend-patterns等"
+                echo "  • 31个命令: /tdd, /plan, /e2e, /code-review等"
+                echo "  • 6个规则: security, coding-style, testing, git-workflow等"
+                echo ""
+                echo "功能说明: 全面的Claude Code配置，包含规划、架构、TDD、安全审查等完整工作流"
+            else
+                echo "Install everything-claude-code? (Complete Suite)"
+                echo "------------------------------------------------------------"
+                echo "Type: Complete Configuration Suite"
+                echo ""
+                echo "Included components:"
+                echo "  • 13 Agents: planner, architect, tdd-guide, code-reviewer, etc."
+                echo "  • 43 Skills: coding-standards, backend-patterns, frontend-patterns, etc."
+                echo "  • 31 Commands: /tdd, /plan, /e2e, /code-review, etc."
+                echo "  • 6 Rules: security, coding-style, testing, git-workflow, etc."
+                echo ""
+                echo "Description: Comprehensive Claude Code configuration with planning, architecture, TDD, security review workflows"
+            fi
+            ;;
+        agent-skills)
+            if [ "$lang" = "cn" ]; then
+                echo "安装 agent-skills? (技能)"
+                echo "------------------------------------------------------------"
+                echo "类型: AI代理技能集合"
+                echo ""
+                echo "包含的组件:"
+                echo "  • AI智能体专业技能"
+                echo "  • 工作流程优化技能"
+                echo ""
+                echo "功能说明: 提供AI代理的专业工作流程支持，增强代理能力和协作效率"
+            else
+                echo "Install agent-skills? (Skills)"
+                echo "------------------------------------------------------------"
+                echo "Type: AI Agent Skills Collection"
+                echo ""
+                echo "Included components:"
+                echo "  • AI agent professional skills"
+                echo "  • Workflow optimization skills"
+                echo ""
+                echo "Description: Provides professional workflow support for AI agents, enhancing capabilities and collaboration"
+            fi
+            ;;
+        *)
+            if [ "$lang" = "cn" ]; then
+                echo "安装 $project_name?"
+            else
+                echo "Install $project_name?"
+            fi
+            echo "------------------------------------------------------------"
+            echo "$project_components"
             ;;
     esac
 }
@@ -429,6 +785,7 @@ CODE_REVIEW_GRAPH_REPO="https://github.com/tirth8205/code-review-graph.git"
 GITNEXUS_REPO="https://github.com/abhigyanpatwari/GitNexus.git"
 RTK_REPO="https://github.com/rtk-ai/rtk.git"
 EVERYTHING_CLAUDE_CODE_REPO="https://github.com/affaan-m/everything-claude-code.git"
+AGENT_SKILLS_REPO="https://github.com/addyosmani/agent-skills.git"
 
 # GitHub acceleration tool
 GITHUB_PROXY="https://gh-proxy.org"
@@ -593,7 +950,7 @@ echo "Claude Addons Installer"
 echo "----------------------"
 echo "Enhance Claude Code with tools, skills, agents and plugins."
 echo ""
-echo "Projects (10):"
+echo "Projects (11):"
 echo "  [1] agency-agents           - 10+ Agents"
 echo "  [2] claude-plugins-official - Plugin Marketplace"
 echo "  [3] gstack                  - 15+ Skills"
@@ -604,6 +961,7 @@ echo "  [7] code-review-graph       - Code review graph"
 echo "  [8] GitNexus               - Code intelligence"
 echo "  [9] rtk                    - Token optimizer"
 echo " [10] everything-claude-code  - Complete Suite"
+echo " [11] agent-skills            - AI agent skills"
 echo ""
 echo "Requires: Python 3.7+, Node.js 16+, Git 2.0+, Claude Code"
 echo ""
@@ -681,6 +1039,13 @@ if confirm_project_install "everything-claude-code" "" "Suite" "Agents+Skills+Co
     INSTALLED_PROJECTS="$INSTALLED_PROJECTS everything-claude-code"
 else
     SKIPPED_PROJECTS="$SKIPPED_PROJECTS everything-claude-code"
+fi
+
+if confirm_project_install "agent-skills" "" "Skills" "AI agent skills collection"; then
+    process_repo "agent-skills" "AGENT_SKILLS_REPO"
+    INSTALLED_PROJECTS="$INSTALLED_PROJECTS agent-skills"
+else
+    SKIPPED_PROJECTS="$SKIPPED_PROJECTS agent-skills"
 fi
 
 # Check if a project was installed
@@ -848,6 +1213,23 @@ if project_installed "everything-claude-code"; then
     echo "✓ everything-claude-code skills installation completed"
 else
     echo "- Skipping everything-claude-code skills (project not selected)"
+fi
+
+# Install agent-skills
+if project_installed "agent-skills"; then
+    echo "Installing agent-skills..."
+    mkdir -p "$HOME/.claude/skills"
+    for skill_dir in agent-skills/*; do
+        if [ -d "$skill_dir" ]; then
+            skill_name=$(basename "$skill_dir")
+            echo "  - Copying skill: $skill_name"
+            rm -rf "$HOME/.claude/skills/$skill_name"
+            cp -r "$skill_dir" "$HOME/.claude/skills/"
+        fi
+    done
+    echo "✓ agent-skills installation completed"
+else
+    echo "- Skipping agent-skills (project not selected)"
 fi
 
 # ======================================
@@ -1030,57 +1412,130 @@ fi
 # ======================================
 # USAGE GUIDE
 # ======================================
-echo "======================================"
-echo "Usage Guide"
-echo "======================================"
-echo ""
-echo "code-review-graph Usage Guide:"
-echo "Please execute the following commands in the root directory of your code project:"
-echo "  1. code-review-graph install --platform claude-code  # Configure code-review-graph"
-echo "  2. code-review-graph build                         # Build codebase graph"
-echo ""
-echo "This way, Claude Code will only read relevant files when processing code, greatly reducing token usage."
-echo ""
-echo "GitNexus Usage Guide:"
-echo "Please execute the following commands in the root directory of your code project:"
-echo "  1. npx gitnexus analyze  # Analyze codebase and create knowledge graph"
-echo "  2. npx gitnexus setup    # Configure MCP server (only need to execute once)"
-echo ""
-echo "This way, Claude Code will obtain a deep architectural view of the codebase, avoiding missing dependencies and breaking call chains."
-echo ""
-echo "rtk Usage Guide:"
-echo "1. Initialize rtk (only need to execute once):"
-echo "   rtk init -g  # Configure for Claude Code / Copilot"
-echo "   rtk init -g --gemini  # Configure for Gemini CLI"
-echo "   rtk init -g --codex  # Configure for Codex (OpenAI)"
-echo ""
-echo "2. Restart your AI tool, then test:"
-echo "   git status  # Will be automatically rewritten to rtk git status"
-echo ""
-echo "This can reduce LLM token consumption by 60-90%, greatly improving code processing efficiency."
+show_usage_guide() {
+    local lang=$(detect_lang)
+    
+    if [ "$lang" = "cn" ]; then
+        echo "======================================"
+        echo "使用指南"
+        echo "======================================"
+        echo ""
+        echo "--- 代理 (Agents) ---"
+        echo "已安装的代理：planner, architect, tdd-guide, code-reviewer,"
+        echo "security-reviewer, frontend-developer, backend-architect 等"
+        echo "用法：在 Claude Code 中直接提及代理名称即可激活"
+        echo ""
+        echo "--- 技能 (Skills) ---"
+        echo "可用的斜杠命令："
+        echo "  /office-hours    - 团队咨询时段"
+        echo "  /plan-ceo-review - CEO 视角审查计划"
+        echo "  /plan-design-review - 设计审查"
+        echo "  /plan-eng-review - 工程审查"
+        echo "  /review          - 代码审查"
+        echo "  /investigate     - 问题调查"
+        echo "  /ship            - 部署发布"
+        echo "  /tdd             - TDD 开发流程"
+        echo "  /plan            - 功能规划"
+        echo "  /code-review     - 代码审查"
+        echo "  /e2e             - 端到端测试"
+        echo "  /help            - 显示所有命令"
+        echo ""
+        echo "--- 插件 (Plugins) ---"
+        echo "已安装 Claude 插件：ralph-loop, code-review, code-simplifier,"
+        echo "security-guidance, feature-dev, rust-analyzer-lsp, pyright-lsp"
+        echo "用法：claude plugin list  # 查看已安装插件"
+        echo ""
+        echo "--- 规则 (Rules) ---"
+        echo "已安装规则：security, coding-style, testing, git-workflow, agents"
+        echo "用法：规则自动应用于相关文件类型的分析"
+        echo ""
+        echo "--- 工具 (Tools) ---"
+        echo ""
+        echo "code-review-graph:"
+        echo "  在项目根目录：code-review-graph install --platform claude-code"
+        echo "                code-review-graph build"
+        echo "  提示：降低代码审查的 token 消耗"
+        echo ""
+        echo "graphify:"
+        echo "  在项目根目录：graphify --help"
+        echo "  提示：构建知识图谱帮助理解代码结构"
+        echo ""
+        echo "GitNexus:"
+        echo "  在项目根目录：npx gitnexus analyze  # 分析代码"
+        echo "                npx gitnexus setup    # 配置 MCP"
+        echo "  提示：深入理解代码架构和依赖关系"
+        echo ""
+        echo "rtk:"
+        echo "  初始化：rtk init -g              # Claude Code"
+        echo "         rtk init -g --gemini     # Gemini"
+        echo "         rtk init -g --codex      # Codex"
+        echo "  测试：git status  # 自动优化"
+        echo "  提示：减少 60-90% token 消耗"
+        echo ""
+        echo "详细说明："
+        echo "  https://github.com/affaan-m/everything-claude-code"
+        echo "  https://github.com/addyosmani/agent-skills"
+    else
+        echo "======================================"
+        echo "Usage Guide"
+        echo "======================================"
+        echo ""
+        echo "--- Agents ---"
+        echo "Installed agents: planner, architect, tdd-guide, code-reviewer,"
+        echo "security-reviewer, frontend-developer, backend-architect, etc."
+        echo "Usage: Mention agent name directly in Claude Code"
+        echo ""
+        echo "--- Skills ---"
+        echo "Available slash commands:"
+        echo "  /office-hours    - Team consultation"
+        echo "  /plan-ceo-review - CEO review"
+        echo "  /plan-design-review - Design review"
+        echo "  /plan-eng-review - Engineering review"
+        echo "  /review          - Code review"
+        echo "  /investigate     - Issue investigation"
+        echo "  /ship            - Deploy & release"
+        echo "  /tdd             - TDD workflow"
+        echo "  /plan            - Feature planning"
+        echo "  /code-review     - Code review"
+        echo "  /e2e             - End-to-end testing"
+        echo "  /help            - Show all commands"
+        echo ""
+        echo "--- Plugins ---"
+        echo "Installed plugins: ralph-loop, code-review, code-simplifier,"
+        echo "security-guidance, feature-dev, rust-analyzer-lsp, pyright-lsp"
+        echo "Usage: claude plugin list  # List installed plugins"
+        echo ""
+        echo "--- Rules ---"
+        echo "Installed rules: security, coding-style, testing, git-workflow, agents"
+        echo "Usage: Automatically applied when analyzing relevant file types"
+        echo ""
+        echo "--- Tools ---"
+        echo ""
+        echo "code-review-graph:"
+        echo "  In project root: code-review-graph install --platform claude-code"
+        echo "                  code-review-graph build"
+        echo "  Tip: Reduces token usage in code reviews"
+        echo ""
+        echo "graphify:"
+        echo "  In project root: graphify --help"
+        echo "  Tip: Build knowledge graphs to understand code structure"
+        echo ""
+        echo "GitNexus:"
+        echo "  In project root: npx gitnexus analyze  # Analyze code"
+        echo "                  npx gitnexus setup    # Configure MCP"
+        echo "  Tip: Deep understanding of code architecture"
+        echo ""
+        echo "rtk:"
+        echo "  Init: rtk init -g              # Claude Code"
+        echo "       rtk init -g --gemini     # Gemini"
+        echo "       rtk init -g --codex      # Codex"
+        echo "  Test: git status  # Auto-optimized"
+        echo "  Tip: Reduces token consumption by 60-90%"
+        echo ""
+        echo "Details:"
+        echo "  https://github.com/affaan-m/everything-claude-code"
+        echo "  https://github.com/addyosmani/agent-skills"
+    fi
+}
 
-echo ""
-echo "======================================"
-echo "everything-claude-code Usage Guide:"
-echo "======================================"
-echo ""
-echo "everything-claude-code 是一个完整的 Claude Code 配置集合，包含："
-echo "  - 13 个专业代理（planner, architect, tdd-guide, code-reviewer 等）"
-echo "  - 43 个技能（coding-standards, backend-patterns, frontend-patterns 等）"
-echo "  - 31 个命令（/tdd, /plan, /e2e, /code-review 等）"
-echo "  - 规则、钩子、脚本和 MCP 配置"
-echo ""
-echo "快速开始："
-echo "1. 使用斜杠命令尝试功能规划："
-echo "   /plan \"添加用户认证\""
-echo ""
-echo "2. 查看所有可用命令："
-echo "   /help"
-echo ""
-echo "3. 使用 TDD 工作流："
-echo "   /tdd"
-echo ""
-echo "4. 代码审查："
-echo "   /code-review"
-echo ""
-echo "有关详细信息，请参考：https://github.com/affaan-m/everything-claude-code"
+show_usage_guide
