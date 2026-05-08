@@ -11,17 +11,20 @@ This is a script for managing the installation and update of Claude Code related
 - **Git Repository Management**: Automatically clone or update multiple Claude-related projects
 - **Network Optimization**: Built-in network testing and GitHub acceleration links to improve cloning success rate
 - **Tool Installation**: Automatically install tools like graphify, code-review-graph, GitNexus, rtk, etc.
-- **Skill Configuration**: Automatically copy and configure skills like gstack, superpowers, compound-engineering, etc.
+- **Skill Configuration**: Automatically copy and configure skills like gstack, superpowers, compound-engineering, agent-skills, etc.
 - **Version Check**: Avoid repeated installation of the same version of tools
 - **Cleanup Option**: Optional to keep or remove Git repositories to maintain a clean directory
 - **Error Handling**: Plugin installation failures won't interrupt the entire script execution
+- **Per-project Confirmation**: Interactive confirmation before installing each project with detailed information
+- **Bilingual Support**: Automatic language detection (Chinese/English) for all prompts and guides
 
 ## Supported Projects
 
-- **Agents**: agency-agents, compound-engineering-plugin/agents
+- **Agents**: agency-agents, compound-engineering-plugin/agents, everything-claude-code/agents
 - **Plugins**: claude-plugins-official
-- **Skills**: gstack, superpowers/skills, compound-engineering-plugin/skills, graphify
+- **Skills**: gstack, superpowers/skills, compound-engineering-plugin/skills, graphify, agent-skills, everything-claude-code/skills
 - **Tools**: graphify, code-review-graph, GitNexus, rtk
+- **Complete Suite**: everything-claude-code (13 Agents + 43 Skills + 31 Commands + 6 Rules)
 
 ## Installation Methods
 
@@ -61,6 +64,23 @@ curl -fsSL https://raw.githubusercontent.com/bingerz/claude-addons/refs/heads/ma
   ```bash
   ./install-claude-addons.sh --keep-repos
   ```
+
+- **Skip Confirmation Mode** (install all without prompts):
+  ```bash
+  ./install-claude-addons.sh --yes
+  ```
+
+### Installation Flow
+
+1. **Project List Display**: Shows all available projects with brief descriptions
+2. **Per-project Confirmation**: For each project, shows detailed information including:
+   - Type (Agents/Skills/Tools/Plugins)
+   - Included components with descriptions
+   - Function description
+3. **Interactive Options**:
+   - `Y` - Install this project
+   - `N` - Skip this project
+   - `A` - Skip all remaining projects
 
 ### Tool Usage Guide
 
@@ -115,17 +135,29 @@ curl -fsSL https://raw.githubusercontent.com/bingerz/claude-addons/refs/heads/ma
 
 - After installation, it will be automatically configured to Claude's skills directory
 - You can activate gstack mode in Claude Code to get more powerful code analysis capabilities
+- Key commands: /office-hours, /plan-ceo-review, /plan-design-review, /review, /ship
 
 #### superpowers
 
 - Contains multiple professional skills, such as front-end development, back-end development, data analysis, etc.
 - After installation, it will be automatically copied to Claude's skills directory
-- You can activate the corresponding skill mode in Claude Code
+- Key skills: brainstorming, test-driven-development, systematic-debugging, using-git-worktrees
 
 #### compound-engineering
 
 - Provides engineering-related skills and agents
 - After installation, it will be automatically copied to Claude's skills and agents directories
+- Key commands: /ce:brainstorm, /ce:plan, /ce:build, /ce:review
+
+#### agent-skills
+
+- AI agent professional skills collection
+- Enhances agent capabilities and collaboration efficiency
+
+#### everything-claude-code
+
+- Complete configuration suite with comprehensive skills and commands
+- Key commands: /plan, /tdd, /code-review, /e2e, /help
 
 ## Usage Tips
 
@@ -141,6 +173,8 @@ curl -fsSL https://raw.githubusercontent.com/bingerz/claude-addons/refs/heads/ma
 
 6. **Environment Variables**: The script will automatically detect the system environment and choose the most appropriate installation method (such as Homebrew or quick installation).
 
+7. **Language Detection**: The script automatically detects system language and displays prompts in Chinese or English accordingly.
+
 ## Notes
 
 - The script requires network connection to clone Git repositories and install tools
@@ -154,6 +188,7 @@ curl -fsSL https://raw.githubusercontent.com/bingerz/claude-addons/refs/heads/ma
 - **Tool Installation Failure**: Check if Python or Node.js environment is normal
 - **Plugin Installation Failure**: Some plugins may not exist in Claude's plugin market, which is normal
 - **Skill Configuration Failure**: Check if the target directory permissions are correct
+- **Language Issues**: The script uses system language settings (LANG, LC_ALL, LANGUAGE environment variables)
 
 ## Contribution
 

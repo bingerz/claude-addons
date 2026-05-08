@@ -11,18 +11,20 @@
 - **Git 仓库管理**：自动克隆或更新多个 Claude 相关项目
 - **网络优化**：内置网络测试和 GitHub 加速链接，提高克隆成功率
 - **工具安装**：自动安装 graphify、code-review-graph、GitNexus、rtk 等工具
-- **技能配置**：自动复制和配置 gstack、superpowers、compound-engineering 等技能
+- **技能配置**：自动复制和配置 gstack、superpowers、compound-engineering、agent-skills 等技能
 - **版本检查**：避免重复安装同一个版本的工具
 - **清理选项**：可选择是否保留 Git 仓库，保持目录整洁
 - **错误处理**：插件安装失败时不会中断整个脚本执行
+- **逐项目确认**：安装每个项目前显示详细信息并进行交互式确认
+- **双语支持**：自动检测系统语言，显示中文或英文提示
 
 ## 支持的项目
 
-- **Agents**：agency-agents、compound-engineering-plugin/agents
+- **Agents**：agency-agents、compound-engineering-plugin/agents、everything-claude-code/agents
 - **Plugins**：claude-plugins-official
-- **Skills**：gstack、superpowers/skills、compound-engineering-plugin/skills、graphify
+- **Skills**：gstack、superpowers/skills、compound-engineering-plugin/skills、graphify、agent-skills、everything-claude-code/skills
 - **Tools**：graphify、code-review-graph、GitNexus、rtk
-- **完整配置**：everything-claude-code（13 个代理、43 个技能、31 个命令）
+- **完整套件**：everything-claude-code（13 个代理 + 43 个技能 + 31 个命令 + 6 个规则）
 
 ## 安装方法
 
@@ -63,29 +65,99 @@ curl -fsSL https://raw.githubusercontent.com/bingerz/claude-addons/refs/heads/ma
   ./install-claude-addons.sh --keep-repos
   ```
 
-- **卸载模式**（卸载所有已安装的 Claude Addons）：
+- **跳过确认模式**（直接安装所有项目）：
   ```bash
-  ./install-claude-addons.sh --uninstall
+  ./install-claude-addons.sh --yes
   ```
 
-  卸载功能会移除：
-  - 所有已安装的工具（graphify、code-review-graph、GitNexus、rtk）
-  - 所有已安装的技能
-  - 所有已安装的代理
-  - 所有已安装的规则
-  - 所有已安装的命令
-  - 所有已安装的 Claude 插件
-  - 所有插件市场配置
+### 安装流程
 
-  注意：一些配置文件（如 hooks、MCP 配置）需要手动清理。
+1. **项目列表展示**：显示所有可用项目及其简要描述
+2. **逐项目确认**：对每个项目显示详细信息，包括：
+   - 类型（代理/技能/工具/插件）
+   - 包含的组件及描述
+   - 功能说明
+3. **交互选项**：
+   - `Y` - 安装此项目
+   - `N` - 跳过此项目
+   - `A` - 跳过所有剩余项目
 
 ### 工具使用指南
 
-有关工具的详细使用指南，请参考 [Claude Addons 使用手册](USER_MANUAL.zh-CN.md)，其中包含了 code-review-graph、GitNexus、rtk 和 graphify 等工具的完整安装步骤、使用方法、核心功能和最佳实践。
+#### code-review-graph
+
+1. 在代码项目根目录执行：
+   ```bash
+   code-review-graph install --platform claude-code  # 配置 code-review-graph
+   code-review-graph build                         # 构建代码图谱
+   ```
+
+2. 用途：Claude Code 在处理代码时只会读取相关文件，大幅降低 token 使用。
+
+#### GitNexus
+
+1. 在代码项目根目录执行：
+   ```bash
+   npx gitnexus analyze  # 分析代码库并创建知识图谱
+   npx gitnexus setup    # 配置 MCP 服务器（仅需执行一次）
+   ```
+
+2. 用途：帮助 Claude Code 深入理解代码架构，避免遗漏依赖和破坏调用链。
+
+#### rtk
+
+1. 初始化 rtk（仅需执行一次）：
+   ```bash
+   rtk init -g                     # 配置 Claude Code / Copilot
+   rtk init -g --gemini            # 配置 Gemini CLI
+   rtk init -g --codex             # 配置 Codex (OpenAI)
+   ```
+
+2. 重启 AI 工具后测试：
+   ```bash
+   git status  # 会自动重写为 rtk git status
+   ```
+
+3. 用途：减少 LLM token 消耗 60-90%，大幅提高代码处理效率。
+
+#### graphify
+
+1. 安装技能：
+   ```bash
+   graphify install --platform claude
+   ```
+
+2. 用途：提供代码可视化和分析功能，帮助更好地理解代码结构。
 
 ### 技能使用指南
 
-有关技能的详细使用指南，请参考 [Claude Addons 使用手册](USER_MANUAL.zh-CN.md)，其中包含了 gstack、superpowers 和 compound-engineering 等技能的完整安装步骤、使用方法、核心功能和最佳实践。
+#### gstack
+
+- 安装后会自动配置到 Claude 的技能目录
+- 可在 Claude Code 中激活 gstack 模式，获得更强大的代码分析能力
+- 主要命令：/office-hours、/plan-ceo-review、/plan-design-review、/review、/ship
+
+#### superpowers
+
+- 包含多个专业技能，如前端开发、后端开发、数据分析等
+- 安装后会自动复制到 Claude 的技能目录
+- 主要技能：brainstorming、test-driven-development、systematic-debugging、using-git-worktrees
+
+#### compound-engineering
+
+- 提供工程相关的技能和代理
+- 安装后会自动复制到 Claude 的技能和代理目录
+- 主要命令：/ce:brainstorm、/ce:plan、/ce:build、/ce:review
+
+#### agent-skills
+
+- AI 智能体专业技能集合
+- 增强代理能力和协作效率
+
+#### everything-claude-code
+
+- 完整的配置套件，包含全面的技能和命令
+- 主要命令：/plan、/tdd、/code-review、/e2e、/help
 
 ## 使用技巧
 
@@ -101,6 +173,8 @@ curl -fsSL https://raw.githubusercontent.com/bingerz/claude-addons/refs/heads/ma
 
 6. **环境变量**：脚本会自动检测系统环境，选择最合适的安装方式（如 Homebrew 或快速安装）。
 
+7. **语言检测**：脚本自动检测系统语言，并相应地显示中文或英文提示。
+
 ## 注意事项
 
 - 脚本需要网络连接才能克隆 Git 仓库和安装工具
@@ -114,6 +188,7 @@ curl -fsSL https://raw.githubusercontent.com/bingerz/claude-addons/refs/heads/ma
 - **工具安装失败**：检查 Python 或 Node.js 环境是否正常
 - **插件安装失败**：某些插件可能不存在于 Claude 的插件市场，这是正常现象
 - **技能配置失败**：检查目标目录权限是否正确
+- **语言问题**：脚本使用系统语言设置（LANG、LC_ALL、LANGUAGE 环境变量）
 
 ## 贡献
 
