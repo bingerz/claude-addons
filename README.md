@@ -32,7 +32,7 @@ This is a script for managing the installation and update of Claude Code related
 
 1. Download the script to your local machine:
    ```bash
-   curl -fsSL https://raw.githubusercontent.com/bingerz/claude-addons/refs/heads/master/install-claude-addons.sh -o install-claude-addons.sh
+   curl -fsSL https://raw.githubusercontent.com/bingerz/claude-addons/master/install-claude-addons.sh -o install-claude-addons.sh
    ```
 
 2. Give execute permission:

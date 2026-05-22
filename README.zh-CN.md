@@ -32,7 +32,7 @@
 
 1. 下载脚本到本地：
    ```bash
-   curl -fsSL https://raw.githubusercontent.com/bingerz/claude-addons/refs/heads/master/install-claude-addons.sh -o install-claude-addons.sh
+   curl -fsSL https://raw.githubusercontent.com/bingerz/claude-addons/master/install-claude-addons.sh -o install-claude-addons.sh
    ```
 
 2. 赋予执行权限：
