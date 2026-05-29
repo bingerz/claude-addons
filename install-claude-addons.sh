@@ -238,6 +238,7 @@ if [ "$UNINSTALL" = "true" ]; then
         "feature-dev"
         "rust-analyzer-lsp"
         "pyright-lsp"
+        "understand-anything"
     )
 
     for plugin in "${plugins_to_remove[@]}"; do
@@ -681,6 +682,35 @@ show_project_details() {
                 echo "Description: Provides professional workflow support for AI agents, enhancing capabilities and collaboration"
             fi
             ;;
+        understand-anything)
+            if [ "$lang" = "cn" ]; then
+                echo "安装 understand-anything? (插件)"
+                echo "------------------------------------------------------------"
+                echo "类型: 知识图谱插件"
+                echo ""
+                echo "包含的组件:"
+                echo "  • 多代理分析管道"
+                echo "  • 交互式知识图谱仪表板"
+                echo "  • 代码结构可视化"
+                echo "  • 业务逻辑分析"
+                echo "  • 引导式学习路径"
+                echo ""
+                echo "功能说明: 将代码库转换为交互式知识图谱，支持代码探索、搜索和问答，帮助理解代码架构和依赖关系"
+            else
+                echo "Install understand-anything? (Plugin)"
+                echo "------------------------------------------------------------"
+                echo "Type: Knowledge Graph Plugin"
+                echo ""
+                echo "Included components:"
+                echo "  • Multi-agent analysis pipeline"
+                echo "  • Interactive knowledge graph dashboard"
+                echo "  • Code structure visualization"
+                echo "  • Business logic analysis"
+                echo "  • Guided learning tours"
+                echo ""
+                echo "Description: Turn codebase into interactive knowledge graph for exploration, search and Q&A, helping understand architecture and dependencies"
+            fi
+            ;;
         *)
             if [ "$lang" = "cn" ]; then
                 echo "安装 $project_name?"
@@ -786,6 +816,7 @@ GITNEXUS_REPO="https://github.com/abhigyanpatwari/GitNexus.git"
 RTK_REPO="https://github.com/rtk-ai/rtk.git"
 EVERYTHING_CLAUDE_CODE_REPO="https://github.com/affaan-m/everything-claude-code.git"
 AGENT_SKILLS_REPO="https://github.com/addyosmani/agent-skills.git"
+UNDERSTAND_ANYTHING_REPO="https://github.com/Lum1104/Understand-Anything.git"
 
 # GitHub acceleration tool
 GITHUB_PROXY="https://gh-proxy.org"
@@ -962,6 +993,7 @@ echo "  [8] GitNexus               - Code intelligence"
 echo "  [9] rtk                    - Token optimizer"
 echo " [10] everything-claude-code  - Complete Suite"
 echo " [11] agent-skills            - AI agent skills"
+echo " [12] understand-anything     - Knowledge graph plugin"
 echo ""
 echo "Requires: Python 3.7+, Node.js 16+, Git 2.0+, Claude Code"
 echo ""
@@ -1046,6 +1078,13 @@ if confirm_project_install "agent-skills" "" "Skills" "AI agent skills collectio
     INSTALLED_PROJECTS="$INSTALLED_PROJECTS agent-skills"
 else
     SKIPPED_PROJECTS="$SKIPPED_PROJECTS agent-skills"
+fi
+
+if confirm_project_install "understand-anything" "" "Plugin" "Knowledge graph plugin"; then
+    process_repo "understand-anything" "UNDERSTAND_ANYTHING_REPO"
+    INSTALLED_PROJECTS="$INSTALLED_PROJECTS understand-anything"
+else
+    SKIPPED_PROJECTS="$SKIPPED_PROJECTS understand-anything"
 fi
 
 # Check if a project was installed
@@ -1230,6 +1269,24 @@ if project_installed "agent-skills"; then
     echo "✓ agent-skills installation completed"
 else
     echo "- Skipping agent-skills (project not selected)"
+fi
+
+# Install understand-anything
+if project_installed "understand-anything"; then
+    echo "Installing understand-anything..."
+    if [ -f "understand-anything/install.sh" ]; then
+        echo "  - Running understand-anything install script..."
+        cd understand-anything
+        bash install.sh claude
+        cd ..
+        echo "✓ understand-anything installation completed"
+    else
+        echo "  - Install script not found, manual installation required"
+        echo "  - Please run: /plugin marketplace add Lum1104/Understand-Anything"
+        echo "  - Then run: /plugin install understand-anything"
+    fi
+else
+    echo "- Skipping understand-anything (project not selected)"
 fi
 
 # ======================================
@@ -1442,8 +1499,17 @@ show_usage_guide() {
         echo ""
         echo "--- 插件 (Plugins) ---"
         echo "已安装 Claude 插件：ralph-loop, code-review, code-simplifier,"
-        echo "security-guidance, feature-dev, rust-analyzer-lsp, pyright-lsp"
+        echo "security-guidance, feature-dev, rust-analyzer-lsp, pyright-lsp,"
+        echo "understand-anything"
         echo "用法：claude plugin list  # 查看已安装插件"
+        echo ""
+        echo "understand-anything:"
+        echo "  命令：/understand          - 分析代码库"
+        echo "       /understand-dashboard - 打开交互式仪表板"
+        echo "       /understand-chat      - 询问代码相关问题"
+        echo "       /understand-diff      - 分析变更影响"
+        echo "       /understand-explain   - 深入了解文件/函数"
+        echo "  提示：将代码库转换为交互式知识图谱"
         echo ""
         echo "--- 规则 (Rules) ---"
         echo "已安装规则：security, coding-style, testing, git-workflow, agents"
@@ -1475,6 +1541,7 @@ show_usage_guide() {
         echo "详细说明："
         echo "  https://github.com/affaan-m/everything-claude-code"
         echo "  https://github.com/addyosmani/agent-skills"
+        echo "  https://github.com/Lum1104/Understand-Anything"
     else
         echo "======================================"
         echo "Usage Guide"
@@ -1502,8 +1569,17 @@ show_usage_guide() {
         echo ""
         echo "--- Plugins ---"
         echo "Installed plugins: ralph-loop, code-review, code-simplifier,"
-        echo "security-guidance, feature-dev, rust-analyzer-lsp, pyright-lsp"
+        echo "security-guidance, feature-dev, rust-analyzer-lsp, pyright-lsp,"
+        echo "understand-anything"
         echo "Usage: claude plugin list  # List installed plugins"
+        echo ""
+        echo "understand-anything:"
+        echo "  Commands: /understand          - Analyze codebase"
+        echo "           /understand-dashboard - Open interactive dashboard"
+        echo "           /understand-chat      - Ask questions about code"
+        echo "           /understand-diff      - Analyze change impact"
+        echo "           /understand-explain   - Deep-dive into file/function"
+        echo "  Tip: Turn codebase into interactive knowledge graph"
         echo ""
         echo "--- Rules ---"
         echo "Installed rules: security, coding-style, testing, git-workflow, agents"
@@ -1535,6 +1611,7 @@ show_usage_guide() {
         echo "Details:"
         echo "  https://github.com/affaan-m/everything-claude-code"
         echo "  https://github.com/addyosmani/agent-skills"
+        echo "  https://github.com/Lum1104/Understand-Anything"
     fi
 }
 

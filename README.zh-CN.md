@@ -21,10 +21,11 @@
 ## 支持的项目
 
 - **Agents**：agency-agents、compound-engineering-plugin/agents、everything-claude-code/agents
-- **Plugins**：claude-plugins-official
+- **Plugins**：claude-plugins-official、understand-anything
 - **Skills**：gstack、superpowers/skills、compound-engineering-plugin/skills、graphify、agent-skills、everything-claude-code/skills
 - **Tools**：graphify、code-review-graph、GitNexus、rtk
 - **完整套件**：everything-claude-code（13 个代理 + 43 个技能 + 31 个命令 + 6 个规则）
+- **知识图谱**：understand-anything（交互式代码可视化和分析）
 
 ## 安装方法
 
@@ -48,8 +49,10 @@
 ### 方法二：直接执行（一键安装）
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/bingerz/claude-addons/refs/heads/master/install-claude-addons.sh | sh
+curl -fsSL https://raw.githubusercontent.com/bingerz/claude-addons/master/install-claude-addons.sh | sh -s -- --yes
 ```
+
+> **注意**：`--yes` 参数会跳过所有交互式确认，自动安装所有项目。如需选择性安装，请下载脚本后手动运行。
 
 ## 使用方法
 
@@ -153,6 +156,13 @@ curl -fsSL https://raw.githubusercontent.com/bingerz/claude-addons/refs/heads/ma
 
 - AI 智能体专业技能集合
 - 增强代理能力和协作效率
+
+#### understand-anything
+
+- 知识图谱插件，用于代码可视化和分析
+- 主要命令：/understand、/understand-dashboard、/understand-chat、/understand-diff
+- 功能：交互式仪表板、引导式学习路径、模糊搜索、影响分析
+- 用途：将代码库转换为交互式知识图谱，便于探索和理解
 
 #### everything-claude-code
 

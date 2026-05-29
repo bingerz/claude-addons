@@ -21,10 +21,11 @@ This is a script for managing the installation and update of Claude Code related
 ## Supported Projects
 
 - **Agents**: agency-agents, compound-engineering-plugin/agents, everything-claude-code/agents
-- **Plugins**: claude-plugins-official
+- **Plugins**: claude-plugins-official, understand-anything
 - **Skills**: gstack, superpowers/skills, compound-engineering-plugin/skills, graphify, agent-skills, everything-claude-code/skills
 - **Tools**: graphify, code-review-graph, GitNexus, rtk
 - **Complete Suite**: everything-claude-code (13 Agents + 43 Skills + 31 Commands + 6 Rules)
+- **Knowledge Graph**: understand-anything (Interactive code visualization and analysis)
 
 ## Installation Methods
 
@@ -48,8 +49,10 @@ This is a script for managing the installation and update of Claude Code related
 ### Method 2: Direct Execution (One-click Installation)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/bingerz/claude-addons/refs/heads/master/install-claude-addons.sh | sh
+curl -fsSL https://raw.githubusercontent.com/bingerz/claude-addons/master/install-claude-addons.sh | sh -s -- --yes
 ```
+
+> **Note**: The `--yes` flag skips all interactive confirmations and installs all projects automatically. For selective installation, download and run the script manually.
 
 ## Usage
 
@@ -153,6 +156,13 @@ curl -fsSL https://raw.githubusercontent.com/bingerz/claude-addons/refs/heads/ma
 
 - AI agent professional skills collection
 - Enhances agent capabilities and collaboration efficiency
+
+#### understand-anything
+
+- Knowledge graph plugin for code visualization and analysis
+- Key commands: /understand, /understand-dashboard, /understand-chat, /understand-diff
+- Features: Interactive dashboard, guided tours, fuzzy search, impact analysis
+- Purpose: Turn codebase into interactive knowledge graph for exploration and understanding
 
 #### everything-claude-code
 
