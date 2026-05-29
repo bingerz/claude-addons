@@ -21,11 +21,12 @@
 ## 支持的项目
 
 - **Agents**：agency-agents、compound-engineering-plugin/agents、everything-claude-code/agents
-- **Plugins**：claude-plugins-official、understand-anything
+- **Plugins**：claude-plugins-official、understand-anything、claude-for-legal
 - **Skills**：gstack、superpowers/skills、compound-engineering-plugin/skills、graphify、agent-skills、everything-claude-code/skills
 - **Tools**：graphify、code-review-graph、GitNexus、rtk
 - **完整套件**：everything-claude-code（13 个代理 + 43 个技能 + 31 个命令 + 6 个规则）
 - **知识图谱**：understand-anything（交互式代码可视化和分析）
+- **法律工作流**：claude-for-legal（商业、公司、隐私、雇佣法律插件）
 
 ## 安装方法
 
@@ -163,6 +164,13 @@ curl -fsSL https://raw.githubusercontent.com/bingerz/claude-addons/master/instal
 - 主要命令：/understand、/understand-dashboard、/understand-chat、/understand-diff
 - 功能：交互式仪表板、引导式学习路径、模糊搜索、影响分析
 - 用途：将代码库转换为交互式知识图谱，便于探索和理解
+
+#### claude-for-legal
+
+- Anthropic 官方法律工作流插件集
+- 插件：commercial-legal、corporate-legal、employment-legal、privacy-legal、product-legal、regulatory-legal、litigation-legal、ip-legal、ai-governance-legal
+- 功能：合同审查、NDA分类、尽职调查、DSAR响应、策略起草
+- 用途：自动化公司法务、隐私、雇佣、监管等法律工作流程
 
 #### everything-claude-code
 

@@ -403,30 +403,20 @@ show_project_details() {
                 echo "类型: 官方插件仓库"
                 echo ""
                 echo "包含的插件:"
-                echo "  • ralph-loop           - 循环优化助手"
-                echo "  • code-review          - 代码审查工具"
-                echo "  • code-simplifier      - 代码简化器"
-                echo "  • security-guidance    - 安全性指导"
-                echo "  • feature-dev          - 功能开发助手"
-                echo "  • rust-analyzer-lsp    - Rust语言分析"
-                echo "  • pyright-lsp          - Python类型检查"
+                echo "  • 所有可用的官方插件（自动安装全部）"
                 echo ""
-                echo "功能说明: 官方插件仓库，支持代码审查、安全性指导、LSP语言服务集成等"
+                echo "功能说明: 官方插件仓库，自动安装所有可用插件，支持代码审查、"
+                echo "         安全性指导、LSP语言服务集成等功能"
             else
                 echo "Install claude-plugins-official? (Plugin Marketplace)"
                 echo "------------------------------------------------------------"
                 echo "Type: Official Plugin Repository"
                 echo ""
                 echo "Included plugins:"
-                echo "  • ralph-loop           - Loop optimization assistant"
-                echo "  • code-review          - Code review tool"
-                echo "  • code-simplifier      - Code simplifier"
-                echo "  • security-guidance    - Security guidance"
-                echo "  • feature-dev          - Feature development assistant"
-                echo "  • rust-analyzer-lsp    - Rust language analysis"
-                echo "  • pyright-lsp          - Python type checking"
+                echo "  • All available official plugins (auto-installed)"
                 echo ""
-                echo "Description: Official plugin repository supporting code review, security guidance, LSP integration, etc."
+                echo "Description: Official plugin repository, auto-installs all available plugins"
+                echo "             supporting code review, security guidance, LSP integration, etc."
             fi
             ;;
         gstack)
@@ -711,6 +701,45 @@ show_project_details() {
                 echo "Description: Turn codebase into interactive knowledge graph for exploration, search and Q&A, helping understand architecture and dependencies"
             fi
             ;;
+        claude-for-legal)
+            if [ "$lang" = "cn" ]; then
+                echo "安装 claude-for-legal? (插件)"
+                echo "------------------------------------------------------------"
+                echo "类型: 法律工作流插件集"
+                echo ""
+                echo "包含的插件:"
+                echo "  • commercial-legal    - 商业法律（合同审查、NDA分类、修订追踪）"
+                echo "  • corporate-legal    - 公司法律（尽职调查、董事会决议、实体合规）"
+                echo "  • employment-legal    - 雇佣法律（解雇审查、入职审查、员工分类）"
+                echo "  • privacy-legal      - 隐私法律（DSAR响应、DPA审查、PIA生成）"
+                echo "  • product-legal      - 产品法律（发布审查、营销声明检查）"
+                echo "  • regulatory-legal   - 监管法律（监管动态跟踪、政策差异）"
+                echo "  • litigation-legal   - 诉讼法律"
+                echo "  • ip-legal           - 知识产权法律"
+                echo "  • ai-governance-legal - AI治理法律"
+                echo ""
+                echo "功能说明: Anthropic官方法律插件集，覆盖公司法务、隐私、雇佣、"
+                echo "         监管、知识产权等多个法律领域，支持法律工作流程自动化"
+            else
+                echo "Install claude-for-legal? (Plugin)"
+                echo "------------------------------------------------------------"
+                echo "Type: Legal Workflow Plugin Collection"
+                echo ""
+                echo "Included plugins:"
+                echo "  • commercial-legal    - Commercial legal (contract review, NDA triage, amendment tracing)"
+                echo "  • corporate-legal    - Corporate legal (due diligence, board consents, entity compliance)"
+                echo "  • employment-legal    - Employment legal (termination review, hire review, worker classification)"
+                echo "  • privacy-legal      - Privacy legal (DSAR response, DPA review, PIA generation)"
+                echo "  • product-legal      - Product legal (launch review, marketing claims check)"
+                echo "  • regulatory-legal   - Regulatory legal (regulatory feed tracking, policy diff)"
+                echo "  • litigation-legal   - Litigation legal"
+                echo "  • ip-legal           - IP legal"
+                echo "  • ai-governance-legal - AI governance legal"
+                echo ""
+                echo "Description: Anthropic official legal plugin collection covering corporate, privacy,"
+                echo "             employment, regulatory, IP and more legal areas with workflow automation"
+            fi
+            ;;
         *)
             if [ "$lang" = "cn" ]; then
                 echo "安装 $project_name?"
@@ -817,6 +846,7 @@ RTK_REPO="https://github.com/rtk-ai/rtk.git"
 EVERYTHING_CLAUDE_CODE_REPO="https://github.com/affaan-m/everything-claude-code.git"
 AGENT_SKILLS_REPO="https://github.com/addyosmani/agent-skills.git"
 UNDERSTAND_ANYTHING_REPO="https://github.com/Lum1104/Understand-Anything.git"
+CLAUDE_FOR_LEGAL_REPO="https://github.com/anthropics/claude-for-legal.git"
 
 # GitHub acceleration tool
 GITHUB_PROXY="https://gh-proxy.org"
@@ -994,6 +1024,7 @@ echo "  [9] rtk                    - Token optimizer"
 echo " [10] everything-claude-code  - Complete Suite"
 echo " [11] agent-skills            - AI agent skills"
 echo " [12] understand-anything     - Knowledge graph plugin"
+echo " [13] claude-for-legal       - Legal workflow plugins"
 echo ""
 echo "Requires: Python 3.7+, Node.js 16+, Git 2.0+, Claude Code"
 echo ""
@@ -1085,6 +1116,13 @@ if confirm_project_install "understand-anything" "" "Plugin" "Knowledge graph pl
     INSTALLED_PROJECTS="$INSTALLED_PROJECTS understand-anything"
 else
     SKIPPED_PROJECTS="$SKIPPED_PROJECTS understand-anything"
+fi
+
+if confirm_project_install "claude-for-legal" "" "Plugin" "Legal workflow plugins"; then
+    process_repo "claude-for-legal" "CLAUDE_FOR_LEGAL_REPO"
+    INSTALLED_PROJECTS="$INSTALLED_PROJECTS claude-for-legal"
+else
+    SKIPPED_PROJECTS="$SKIPPED_PROJECTS claude-for-legal"
 fi
 
 # Check if a project was installed
@@ -1289,6 +1327,29 @@ else
     echo "- Skipping understand-anything (project not selected)"
 fi
 
+# Install claude-for-legal
+if project_installed "claude-for-legal"; then
+    echo "Installing claude-for-legal plugins..."
+    if [ -d "claude-for-legal/.claude-plugin" ]; then
+        echo "  - Adding claude-for-legal to plugin marketplace..."
+        claude plugin marketplace add anthropics/claude-for-legal 2>/dev/null || true
+        echo "  - Installing legal plugins..."
+        for plugin_dir in claude-for-legal/*-legal; do
+            if [ -d "$plugin_dir" ] && [ -f "$plugin_dir/plugin.json" ]; then
+                plugin_name=$(basename "$plugin_dir")
+                echo "    - Installing plugin: $plugin_name"
+                claude plugin install "$plugin_name" 2>&1 || echo "      ✗ Installation failed"
+            fi
+        done
+        echo "✓ claude-for-legal plugins installation completed"
+    else
+        echo "  - Plugin directory not found, manual installation required"
+        echo "  - Please run: /plugin marketplace add anthropics/claude-for-legal"
+    fi
+else
+    echo "- Skipping claude-for-legal (project not selected)"
+fi
+
 # ======================================
 # STAGE 4: AGENTS INSTALLATION
 # ======================================
@@ -1359,25 +1420,35 @@ echo "======================================"
 echo ""
 
 if project_installed "claude-plugins-official"; then
-    plugins=(
-        "ralph-loop"
-        "code-review"
-        "code-simplifier"
-        "security-guidance"
-        "feature-dev"
-        "rust-analyzer-lsp"
-        "pyright-lsp"
-    )
+    echo "Installing all Claude plugins from claude-plugins-official..."
+    echo "Note: Installing all available plugins to ensure compatibility"
+    echo ""
 
-    echo "Installing Claude plugins..."
-    for plugin in "${plugins[@]}"; do
-        echo "  - Installing plugin: $plugin"
-        if claude plugin install "$plugin" 2>&1; then
-            echo "    ✓ Installation successful"
+    if [ -d "claude-plugins-official/plugins" ]; then
+        for plugin_dir in claude-plugins-official/plugins/*; do
+            if [ -d "$plugin_dir" ] && [ -f "$plugin_dir/plugin.json" ]; then
+                plugin_name=$(basename "$plugin_dir")
+                echo "  - Installing plugin: $plugin_name"
+                if claude plugin install "$plugin_name" 2>&1; then
+                    echo "    ✓ Installation successful"
+                else
+                    echo "    ✗ Installation failed (plugin may not exist or marketplace not configured)"
+                fi
+            fi
+        done
+    else
+        echo "  - Plugin directory not found, trying to install all available plugins..."
+
+        available_plugins=$(claude plugin list --available 2>/dev/null | grep -E "^\s*" | awk '{print $1}' | head -20)
+        if [ -z "$available_plugins" ]; then
+            echo "  - Could not retrieve plugin list, skipping plugin installation"
         else
-            echo "    ✗ Installation failed (plugin may not exist or marketplace not configured)"
+            for plugin in $available_plugins; do
+                echo "  - Installing plugin: $plugin"
+                claude plugin install "$plugin" 2>&1 || echo "    ✗ Installation failed"
+            done
         fi
-    done
+    fi
     echo "✓ Claude plugins installation completed"
     echo ""
 else
@@ -1511,6 +1582,11 @@ show_usage_guide() {
         echo "       /understand-explain   - 深入了解文件/函数"
         echo "  提示：将代码库转换为交互式知识图谱"
         echo ""
+        echo "claude-for-legal:"
+        echo "  插件：commercial-legal, corporate-legal, employment-legal,"
+        echo "       privacy-legal, product-legal, regulatory-legal 等"
+        echo "  提示：法律工作流插件集，支持合同审查、尽职调查、DSAR响应等"
+        echo ""
         echo "--- 规则 (Rules) ---"
         echo "已安装规则：security, coding-style, testing, git-workflow, agents"
         echo "用法：规则自动应用于相关文件类型的分析"
@@ -1581,6 +1657,12 @@ show_usage_guide() {
         echo "           /understand-explain   - Deep-dive into file/function"
         echo "  Tip: Turn codebase into interactive knowledge graph"
         echo ""
+        echo "claude-for-legal:"
+        echo "  Plugins: commercial-legal, corporate-legal, employment-legal,"
+        echo "          privacy-legal, product-legal, regulatory-legal, etc."
+        echo "  Tip: Legal workflow plugin collection for contract review,"
+        echo "       due diligence, DSAR response and more"
+        echo ""
         echo "--- Rules ---"
         echo "Installed rules: security, coding-style, testing, git-workflow, agents"
         echo "Usage: Automatically applied when analyzing relevant file types"
@@ -1612,6 +1694,7 @@ show_usage_guide() {
         echo "  https://github.com/affaan-m/everything-claude-code"
         echo "  https://github.com/addyosmani/agent-skills"
         echo "  https://github.com/Lum1104/Understand-Anything"
+        echo "  https://github.com/anthropics/claude-for-legal"
     fi
 }
 

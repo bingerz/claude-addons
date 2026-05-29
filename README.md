@@ -21,11 +21,12 @@ This is a script for managing the installation and update of Claude Code related
 ## Supported Projects
 
 - **Agents**: agency-agents, compound-engineering-plugin/agents, everything-claude-code/agents
-- **Plugins**: claude-plugins-official, understand-anything
+- **Plugins**: claude-plugins-official, understand-anything, claude-for-legal
 - **Skills**: gstack, superpowers/skills, compound-engineering-plugin/skills, graphify, agent-skills, everything-claude-code/skills
 - **Tools**: graphify, code-review-graph, GitNexus, rtk
 - **Complete Suite**: everything-claude-code (13 Agents + 43 Skills + 31 Commands + 6 Rules)
 - **Knowledge Graph**: understand-anything (Interactive code visualization and analysis)
+- **Legal Workflows**: claude-for-legal (Commercial, corporate, privacy, employment legal plugins)
 
 ## Installation Methods
 
@@ -163,6 +164,13 @@ curl -fsSL https://raw.githubusercontent.com/bingerz/claude-addons/master/instal
 - Key commands: /understand, /understand-dashboard, /understand-chat, /understand-diff
 - Features: Interactive dashboard, guided tours, fuzzy search, impact analysis
 - Purpose: Turn codebase into interactive knowledge graph for exploration and understanding
+
+#### claude-for-legal
+
+- Anthropic official legal workflow plugin collection
+- Plugins: commercial-legal, corporate-legal, employment-legal, privacy-legal, product-legal, regulatory-legal, litigation-legal, ip-legal, ai-governance-legal
+- Features: Contract review, NDA triage, due diligence, DSAR response, policy drafting
+- Purpose: Automate legal workflows for corporate, privacy, employment, regulatory matters
 
 #### everything-claude-code
 
