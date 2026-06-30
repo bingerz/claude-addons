@@ -740,6 +740,33 @@ show_project_details() {
                 echo "             employment, regulatory, IP and more legal areas with workflow automation"
             fi
             ;;
+        ponytail)
+            if [ "$lang" = "cn" ]; then
+                echo "安装 ponytail? (技能)"
+                echo "------------------------------------------------------------"
+                echo "类型: 最小化代码编写技能"
+                echo ""
+                echo "包含的组件:"
+                echo "  • Ponytail 技能 - 让 AI 只写必要的代码"
+                echo "  • 规则集 - YAGNI、复用优先、标准库优先"
+                echo "  • 命令: /ponytail、/ponytail-review、/ponytail-audit"
+                echo ""
+                echo "功能说明: 基于阶梯式决策规则，让 AI 编写更精简、更高效的代码，"
+                echo "         平均减少 54% 代码量，同时保持安全性和可维护性"
+            else
+                echo "Install ponytail? (Skill)"
+                echo "------------------------------------------------------------"
+                echo "Type: Minimal Code Writing Skill"
+                echo ""
+                echo "Included components:"
+                echo "  • Ponytail skill - Write only necessary code"
+                echo "  • Ruleset - YAGNI, reuse-first, stdlib-first"
+                echo "  • Commands: /ponytail, /ponytail-review, /ponytail-audit"
+                echo ""
+                echo "Description: Ladder-based decision rules for writing leaner, more efficient code,"
+                echo "             averaging 54% less code while maintaining safety and maintainability"
+            fi
+            ;;
         *)
             if [ "$lang" = "cn" ]; then
                 echo "安装 $project_name?"
@@ -847,6 +874,7 @@ EVERYTHING_CLAUDE_CODE_REPO="https://github.com/affaan-m/everything-claude-code.
 AGENT_SKILLS_REPO="https://github.com/addyosmani/agent-skills.git"
 UNDERSTAND_ANYTHING_REPO="https://github.com/Lum1104/Understand-Anything.git"
 CLAUDE_FOR_LEGAL_REPO="https://github.com/anthropics/claude-for-legal.git"
+PONYTAIL_REPO="https://github.com/DietrichGebert/ponytail.git"
 
 # GitHub acceleration tool
 GITHUB_PROXY="https://gh-proxy.org"
@@ -1025,6 +1053,7 @@ echo " [10] everything-claude-code  - Complete Suite"
 echo " [11] agent-skills            - AI agent skills"
 echo " [12] understand-anything     - Knowledge graph plugin"
 echo " [13] claude-for-legal       - Legal workflow plugins"
+echo " [14] ponytail              - Minimal code skill"
 echo ""
 echo "Requires: Python 3.7+, Node.js 16+, Git 2.0+, Claude Code"
 echo ""
@@ -1123,6 +1152,13 @@ if confirm_project_install "claude-for-legal" "" "Plugin" "Legal workflow plugin
     INSTALLED_PROJECTS="$INSTALLED_PROJECTS claude-for-legal"
 else
     SKIPPED_PROJECTS="$SKIPPED_PROJECTS claude-for-legal"
+fi
+
+if confirm_project_install "ponytail" "" "Skill" "Minimal code writing skill"; then
+    process_repo "ponytail" "PONYTAIL_REPO"
+    INSTALLED_PROJECTS="$INSTALLED_PROJECTS ponytail"
+else
+    SKIPPED_PROJECTS="$SKIPPED_PROJECTS ponytail"
 fi
 
 # Check if a project was installed
@@ -1348,6 +1384,24 @@ if project_installed "claude-for-legal"; then
     fi
 else
     echo "- Skipping claude-for-legal (project not selected)"
+fi
+
+# Install ponytail
+if project_installed "ponytail"; then
+    echo "Installing ponytail..."
+    if [ -d "ponytail/.claude-plugin" ]; then
+        echo "  - Adding ponytail to plugin marketplace..."
+        claude plugin marketplace add DietrichGebert/ponytail 2>/dev/null || true
+        echo "  - Installing ponytail plugin..."
+        claude plugin install ponytail@ponytail 2>&1 || echo "    ✗ Installation failed"
+        echo "✓ ponytail installation completed"
+    else
+        echo "  - Plugin directory not found, manual installation required"
+        echo "  - Please run: /plugin marketplace add DietrichGebert/ponytail"
+        echo "  - Then run: /plugin install ponytail@ponytail"
+    fi
+else
+    echo "- Skipping ponytail (project not selected)"
 fi
 
 # ======================================
@@ -1587,6 +1641,13 @@ show_usage_guide() {
         echo "       privacy-legal, product-legal, regulatory-legal 等"
         echo "  提示：法律工作流插件集，支持合同审查、尽职调查、DSAR响应等"
         echo ""
+        echo "ponytail:"
+        echo "  命令：/ponytail          - 切换模式(lite/full/ultra)"
+        echo "       /ponytail-review    - 代码审查"
+        echo "       /ponytail-audit     - 安全审计"
+        echo "       /ponytail-debt      - 技术债务分析"
+        echo "  提示：最小化代码编写技能，平均减少54%代码量"
+        echo ""
         echo "--- 规则 (Rules) ---"
         echo "已安装规则：security, coding-style, testing, git-workflow, agents"
         echo "用法：规则自动应用于相关文件类型的分析"
@@ -1663,6 +1724,13 @@ show_usage_guide() {
         echo "  Tip: Legal workflow plugin collection for contract review,"
         echo "       due diligence, DSAR response and more"
         echo ""
+        echo "ponytail:"
+        echo "  Commands: /ponytail          - Switch mode (lite/full/ultra)"
+        echo "           /ponytail-review    - Code review"
+        echo "           /ponytail-audit     - Security audit"
+        echo "           /ponytail-debt      - Technical debt analysis"
+        echo "  Tip: Minimal code writing skill, averages 54% less code"
+        echo ""
         echo "--- Rules ---"
         echo "Installed rules: security, coding-style, testing, git-workflow, agents"
         echo "Usage: Automatically applied when analyzing relevant file types"
@@ -1695,6 +1763,7 @@ show_usage_guide() {
         echo "  https://github.com/addyosmani/agent-skills"
         echo "  https://github.com/Lum1104/Understand-Anything"
         echo "  https://github.com/anthropics/claude-for-legal"
+        echo "  https://github.com/DietrichGebert/ponytail"
     fi
 }
 

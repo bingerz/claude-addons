@@ -21,12 +21,13 @@
 ## 支持的项目
 
 - **Agents**：agency-agents、compound-engineering-plugin/agents、everything-claude-code/agents
-- **Plugins**：claude-plugins-official、understand-anything、claude-for-legal
-- **Skills**：gstack、superpowers/skills、compound-engineering-plugin/skills、graphify、agent-skills、everything-claude-code/skills
+- **Plugins**：claude-plugins-official、understand-anything、claude-for-legal、ponytail
+- **Skills**：gstack、superpowers/skills、compound-engineering-plugin/skills、graphify、agent-skills、everything-claude-code/skills、ponytail
 - **Tools**：graphify、code-review-graph、GitNexus、rtk
 - **完整套件**：everything-claude-code（13 个代理 + 43 个技能 + 31 个命令 + 6 个规则）
 - **知识图谱**：understand-anything（交互式代码可视化和分析）
 - **法律工作流**：claude-for-legal（商业、公司、隐私、雇佣法律插件）
+- **最小化代码**：ponytail（只写必要代码，平均减少 54% 代码量）
 
 ## 安装方法
 
@@ -171,6 +172,13 @@ curl -fsSL https://raw.githubusercontent.com/bingerz/claude-addons/master/instal
 - 插件：commercial-legal、corporate-legal、employment-legal、privacy-legal、product-legal、regulatory-legal、litigation-legal、ip-legal、ai-governance-legal
 - 功能：合同审查、NDA分类、尽职调查、DSAR响应、策略起草
 - 用途：自动化公司法务、隐私、雇佣、监管等法律工作流程
+
+#### ponytail
+
+- AI 代理的最小化代码编写技能
+- 主要命令：/ponytail、/ponytail-review、/ponytail-audit、/ponytail-debt、/ponytail-gain
+- 功能：阶梯式决策规则（YAGNI、复用优先、标准库优先），平均减少 54% 代码量，100% 安全保证
+- 用途：让 AI 只编写必要的代码，减少代码冗余，提高效率
 
 #### everything-claude-code
 

@@ -21,12 +21,13 @@ This is a script for managing the installation and update of Claude Code related
 ## Supported Projects
 
 - **Agents**: agency-agents, compound-engineering-plugin/agents, everything-claude-code/agents
-- **Plugins**: claude-plugins-official, understand-anything, claude-for-legal
-- **Skills**: gstack, superpowers/skills, compound-engineering-plugin/skills, graphify, agent-skills, everything-claude-code/skills
+- **Plugins**: claude-plugins-official, understand-anything, claude-for-legal, ponytail
+- **Skills**: gstack, superpowers/skills, compound-engineering-plugin/skills, graphify, agent-skills, everything-claude-code/skills, ponytail
 - **Tools**: graphify, code-review-graph, GitNexus, rtk
 - **Complete Suite**: everything-claude-code (13 Agents + 43 Skills + 31 Commands + 6 Rules)
 - **Knowledge Graph**: understand-anything (Interactive code visualization and analysis)
 - **Legal Workflows**: claude-for-legal (Commercial, corporate, privacy, employment legal plugins)
+- **Minimal Code**: ponytail (Write only necessary code, ~54% less code on average)
 
 ## Installation Methods
 
@@ -171,6 +172,13 @@ curl -fsSL https://raw.githubusercontent.com/bingerz/claude-addons/master/instal
 - Plugins: commercial-legal, corporate-legal, employment-legal, privacy-legal, product-legal, regulatory-legal, litigation-legal, ip-legal, ai-governance-legal
 - Features: Contract review, NDA triage, due diligence, DSAR response, policy drafting
 - Purpose: Automate legal workflows for corporate, privacy, employment, regulatory matters
+
+#### ponytail
+
+- Minimal code writing skill for AI agents
+- Key commands: /ponytail, /ponytail-review, /ponytail-audit, /ponytail-debt, /ponytail-gain
+- Features: Ladder-based decision rules (YAGNI, reuse-first, stdlib-first), ~54% less code on average, 100% safety guaranteed
+- Purpose: Make AI write only necessary code, reducing code bloat and improving efficiency
 
 #### everything-claude-code
 
